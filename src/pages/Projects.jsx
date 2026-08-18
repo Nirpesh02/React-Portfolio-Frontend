@@ -319,7 +319,19 @@ export default function Projects() {
                         className="flex-1 rounded-full border border-white/15 px-6 py-3 text-center font-semibold text-slate-100 transition hover:bg-white/5 hover:scale-[1.02]"
                         aria-label={`View ${active.title} source code on GitHub`}
                       >
-                        Source Code
+                        {active.githubUrl2 ? "Frontend Code" : "Source Code"}
+                      </a>
+                    )}
+
+                    {active.githubUrl2 && active.githubUrl2 !== "#" && (
+                      <a
+                        href={active.githubUrl2}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 rounded-full border border-white/15 px-6 py-3 text-center font-semibold text-slate-100 transition hover:bg-white/5 hover:scale-[1.02]"
+                        aria-label={`View ${active.title} backend source code on GitHub`}
+                      >
+                        Backend Code
                       </a>
                     )}
                   </div>
