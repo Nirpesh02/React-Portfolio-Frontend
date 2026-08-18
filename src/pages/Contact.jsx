@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { FaGithub, FaLinkedin, FaTwitter, FaPaperPlane } from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaTwitter, FaPaperPlane, FaDownload } from "react-icons/fa";
+import { FaEnvelope, FaMapMarkerAlt, FaClock, FaToolbox } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -111,7 +112,7 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="relative min-h-screen overflow-hidden bg-slate-950 px-6 py-32 text-white"
+      className="relative min-h-screen overflow-hidden bg-slate-950 px-4 py-20 text-white sm:px-6 sm:py-28"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,41,59,0.95),rgba(2,6,23,0.85))]" />
       <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:72px_72px]" />
@@ -122,7 +123,7 @@ export default function Contact() {
             Contact
           </div>
 
-          <h2 className="mt-5 text-4xl font-semibold tracking-tight text-slate-100 md:text-5xl">
+          <h2 className="mt-5 text-3xl font-semibold tracking-tight text-slate-100 sm:text-4xl md:text-5xl">
             Let’s build something clean, useful, and professional.
           </h2>
 
@@ -132,19 +133,23 @@ export default function Contact() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="mt-12 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] xl:mt-14 xl:gap-8">
           <div className="space-y-8">
-            <div className="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.32)] backdrop-blur-xl">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+            <div className="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:p-6">
+              <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-400">
+                <FaEnvelope className="text-indigo-300" />
                 Contact details
               </h3>
 
               <div className="mt-5 space-y-4">
                 {contactDetails.map((item) => {
                   const content = (
-                    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 transition hover:border-white/20 hover:bg-white/10">
+                    <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 transition hover:border-white/20 hover:bg-white/10 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <div className="text-sm font-medium text-slate-200">
+                        <div className="flex items-center gap-2 text-sm font-medium text-slate-200">
+                          {item.label === "Email" && <FaEnvelope className="text-indigo-300" />}
+                          {item.label === "Location" && <FaMapMarkerAlt className="text-indigo-300" />}
+                          {item.label === "Response time" && <FaClock className="text-indigo-300" />}
                           {item.label}
                         </div>
                         <div className="mt-1 text-sm text-slate-400">
@@ -166,8 +171,9 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5 backdrop-blur-xl sm:p-6">
+              <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-400">
+                <FaToolbox className="text-indigo-300" />
                 What I can help with
               </h3>
 
@@ -188,7 +194,7 @@ export default function Contact() {
                 Social links
               </h3>
 
-              <div className="mt-5 flex gap-5 text-2xl">
+              <div className="mt-5 flex flex-wrap gap-4 text-2xl">
                 {[
                   { icon: <FaGithub />, link: "https://github.com/Nirpesh02", label: "GitHub" },
                   { icon: <FaLinkedin />, link: "https://linkedin.com/in/nirpesh-dhungel", label: "LinkedIn" },
@@ -207,12 +213,20 @@ export default function Contact() {
                 ))}
               </div>
             </div>
+
+            <a
+              href="/Nir_P_Esh_CV.pdf"
+              download="Nir_P_Esh_CV.pdf"
+              className="flex items-center justify-center gap-3 rounded-[1.75rem] border border-indigo-400/30 bg-indigo-500/10 px-6 py-5 text-sm font-semibold text-slate-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/15"
+            >
+              <FaDownload /> Download CV
+            </a>
           </div>
 
-          <div className="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.4)] backdrop-blur-xl md:p-8">
-            <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.4)] backdrop-blur-xl md:p-8">
+            <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-start">
               <div>
-                <h3 className="text-2xl font-semibold text-slate-100">
+                <h3 className="text-xl font-semibold text-slate-100 sm:text-2xl">
                   Send a message
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-400">
@@ -233,7 +247,7 @@ export default function Contact() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Your Name *"
-                className="w-full rounded-xl border border-white/10 bg-black/30 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full rounded-xl border border-white/10 bg-black/30 p-3.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:p-4"
                 required
               />
 
@@ -243,7 +257,7 @@ export default function Contact() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Your Email *"
-                className="w-full rounded-xl border border-white/10 bg-black/30 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full rounded-xl border border-white/10 bg-black/30 p-3.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:p-4"
                 required
               />
 
@@ -254,14 +268,14 @@ export default function Contact() {
                 placeholder="Tell me a bit about your project... *"
                 rows="6"
                 maxLength={1000}
-                className="w-full resize-none rounded-xl border border-white/10 bg-black/30 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full resize-none rounded-xl border border-white/10 bg-black/30 p-3.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:p-4"
                 required
               />
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 py-4 text-lg font-semibold text-slate-900 shadow-lg transition hover:scale-[1.02]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 py-3.5 text-base font-semibold text-slate-900 shadow-lg transition hover:scale-[1.02] sm:py-4 sm:text-lg"
               >
                 {isSubmitting ? "Sending..." : "Send Message"} <FaPaperPlane />
               </button>
