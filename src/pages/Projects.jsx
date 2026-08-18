@@ -39,7 +39,8 @@ const projects = [
     duration: "3 months",
     tech: ["React", "Redux", "Tailwind", "Stripe"],
     liveUrl: "https://hamrobook.vercel.app",
-    githubUrl: "https://github.com/yourname/ecommerce",
+    githubUrl: "https://github.com/Nirpesh02/Book-Store-Frontend",
+    githubUrl2: "https://github.com/Nirpesh02/React-Portfolio-Backend",
     keyFeatures: [
       "Product filtering and search",
       "Shopping cart with persistence",
