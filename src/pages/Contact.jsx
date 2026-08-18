@@ -38,7 +38,7 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const apiBaseUrl =
-    import.meta.env.VITE_API_URL?.trim() || "https://nirpeshportfolionew.onrender.com";
+    import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
