@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { FaFolderOpen, FaImages, FaLightbulb, FaRocket } from "react-icons/fa";
 
@@ -73,6 +73,17 @@ const projects = [
 export default function Projects() {
   const [active, setActive] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
+
+  useEffect(() => {
+    if (active) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [active]);
 
   const handleImageError = (projectId) => {
     setImageErrors((prev) => ({ ...prev, [projectId]: true }));
@@ -202,7 +213,7 @@ export default function Projects() {
               animate={{ y: 0, scale: 1 }}
               exit={{ y: 40, scale: 0.95 }}
               transition={{ duration: 0.4 }}
-              className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950 shadow-[0_30px_100px_rgba(15,23,42,0.65)]"
+              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-white/10 bg-slate-950 shadow-[0_30px_100px_rgba(15,23,42,0.65)]"
               onClick={(e) => e.stopPropagation()}
             >
               <button
