@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { motion as Motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { FaCode, FaMobileAlt, FaPaintBrush, FaProjectDiagram, FaReact } from "react-icons/fa";
 
 const highlights = [
@@ -28,6 +30,38 @@ const metrics = [
 const skills = ["React", "Tailwind", "Framer Motion", "Responsive UI"];
 
 export default function Home() {
+  const [profileImages, setProfileImages] = useState({
+    smallImage: "/images/project4.jpg",
+    largeImage: "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+  });
+
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/home-profile`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          const resolveImageUrl = (url, fallback) => {
+            if (!url) return fallback;
+            if (url.startsWith('/uploads')) return `${apiBaseUrl}${url}`;
+            return url;
+          };
+
+          setProfileImages({
+            smallImage: resolveImageUrl(data.data.smallImage, "/images/project4.jpg"),
+            largeImage: resolveImageUrl(data.data.largeImage, "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3")
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load home images", error);
+      }
+    };
+    fetchImages();
+  }, [apiBaseUrl]);
+
   return (
     <section
       id="home"
@@ -41,13 +75,13 @@ export default function Home() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9 }}
-        className="relative z-10 mx-auto grid min-h-[calc(100vh-8rem)] w-full max-w-7xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] xl:gap-10"
+        className="relative z-10 mx-auto grid min-h-[calc(100vh-8rem)] w-full max-w-7xl items-center gap-8 md:grid-cols-[1.05fr_0.95fr] xl:gap-10"
       >
-        <div className="space-y-7 text-center lg:text-left">
-          <div className="flex flex-col items-center gap-4 lg:items-start">
+        <div className="space-y-7 text-center md:text-left">
+          <div className="flex flex-col items-center gap-4 md:items-start">
             <div className="relative h-24 w-24 overflow-hidden rounded-full border border-white/15 bg-white/5 shadow-[0_18px_50px_rgba(15,23,42,0.45)] sm:h-28 sm:w-28">
               <Motion.img
-                src="/images/project4.jpg"
+                src={profileImages.smallImage}
                 alt="Nir P Esh profile"
                 className="h-full w-full object-cover"
                 initial={{ scale: 1.02 }}
@@ -62,7 +96,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-5">
-            <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-100 sm:text-5xl lg:text-7xl">
+            <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-100 sm:text-5xl md:text-6xl lg:text-7xl">
               Design that feels
               <span className="block text-slate-300">clear, modern, and calm.</span>
             </h1>
@@ -74,19 +108,19 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
-            <a
-              href="#projects"
+          <div className="flex flex-col justify-center gap-4 sm:flex-row md:justify-start">
+            <Link
+              to="/projects"
               className="rounded-full bg-slate-100 px-8 py-3 font-semibold text-slate-900 shadow-lg transition hover:scale-105"
             >
               View Projects
-            </a>
-            <a
-              href="#contact"
+            </Link>
+            <Link
+              to="/contact"
               className="rounded-full border border-white/15 px-8 py-3 font-semibold text-slate-100 transition hover:bg-white/5"
             >
               Contact Me
-            </a>
+            </Link>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -116,7 +150,7 @@ export default function Home() {
             transition={{ duration: 0.9 }}
             className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 shadow-[0_30px_100px_rgba(15,23,42,0.65)]"
           >
-            <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="grid gap-0 md:grid-cols-[0.9fr_1.1fr]">
               <div className="flex flex-col justify-between gap-6 p-6 sm:p-8">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.25em] text-slate-400">
@@ -149,7 +183,7 @@ export default function Home() {
 
               <div className="relative min-h-[340px] sm:min-h-[420px]">
                 <Motion.img
-                  src="https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+                  src={profileImages.largeImage}
                   alt="Profile"
                   className="absolute inset-0 h-full w-full object-cover"
                   whileHover={{ scale: 1.03 }}
@@ -158,16 +192,16 @@ export default function Home() {
 
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
 
-                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                  <div className="inline-flex rounded-full border border-white/10 bg-slate-950/70 px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-300 backdrop-blur">
+                <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
+                  <div className="inline-block rounded-xl sm:rounded-full border border-white/10 bg-slate-950/70 px-3 py-2 sm:px-4 text-[10px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.2em] text-slate-300 backdrop-blur leading-relaxed max-w-full text-center sm:text-left">
                     Available for freelance and full-time work
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-3 sm:mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
                     {skills.map((skill) => (
                       <span
                         key={skill}
-                        className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-medium text-slate-200 backdrop-blur"
+                        className="rounded-full border border-white/10 bg-white/10 px-2 py-1 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium text-slate-200 backdrop-blur"
                       >
                         {skill}
                       </span>

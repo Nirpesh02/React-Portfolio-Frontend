@@ -5,6 +5,26 @@ import { FaUserAstronaut, FaLeaf, FaUsers, FaWandMagicSparkles } from "react-ico
 export default function About() {
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [canTilt, setCanTilt] = useState(false);
+  const [aboutImage, setAboutImage] = useState("");
+
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/home-profile`);
+        const data = await res.json();
+        if (data.success && data.data && data.data.aboutImage) {
+          const url = data.data.aboutImage;
+          setAboutImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+        }
+      } catch (error) {
+        console.error("Failed to fetch about image", error);
+      }
+    };
+    fetchProfile();
+  }, [apiBaseUrl]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -109,11 +129,13 @@ export default function About() {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 120 }}
           >
-            <Motion.img
-              src="/images/project4.jpg"
-              alt="Profile"
-              className="h-[320px] w-full object-cover sm:h-[420px] md:h-[560px]"
-            />
+            {aboutImage && (
+              <Motion.img
+                src={aboutImage}
+                alt="Profile"
+                className="h-[320px] w-full object-cover sm:h-[420px] md:h-[560px]"
+              />
+            )}
 
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/15 to-transparent" />
 
