@@ -11,6 +11,7 @@ import {
   FaQuestionCircle,
   FaRobot,
 } from "react-icons/fa";
+import ProfileBioModal from "./ProfileBioModal";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +20,8 @@ export default function Navbar() {
   const [logoImage, setLogoImage] = useState("");
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [brandName, setBrandName] = useState("NIRPESH");
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [profileBioData, setProfileBioData] = useState(null);
   const location = useLocation();
   const active = location.pathname === "/" ? "home" : location.pathname.substring(1);
 
@@ -36,17 +39,36 @@ export default function Navbar() {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        // Priority 1: Fetch Admin profile avatar & name
+        // Priority 1: Fetch Admin profile avatar, bio & name
         const res = await fetch(`${apiBaseUrl}/api/auth/profile`);
         const data = await res.json();
         if (data.success && data.data) {
-          if (data.data.name) {
-            let n = data.data.name.trim();
-            if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
-            setBrandName(n);
-          }
+          let n = data.data.name?.trim() || "NIRPESH";
+          if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
+          setBrandName(n);
+
+          const fullAvatar = resolveImageUrl(data.data.avatar);
           if (data.data.avatar) {
-            setLogoImage(resolveImageUrl(data.data.avatar));
+            setLogoImage(fullAvatar);
+          }
+
+          setProfileBioData({
+            ...data.data,
+            name: n,
+            avatar: fullAvatar,
+            title: data.data.title || "Full Stack Developer",
+            bio: data.data.bio || "Passionate full-stack developer dedicated to building responsive, scalable, and user-friendly digital experiences.",
+            location: data.data.location || "Remote / Nepal",
+            availability: data.data.availability || "Available for new projects",
+            email: data.data.email || "nirpeshdhungel7@gmail.com",
+            github: data.data.github || "",
+            linkedin: data.data.linkedin || "",
+            twitter: data.data.twitter || "",
+            website: data.data.website || "",
+            phone: data.data.phone || ""
+          });
+
+          if (data.data.avatar) {
             return;
           }
         }
@@ -146,9 +168,11 @@ export default function Navbar() {
             transition={{ duration: 0.5 }}
             className="flex-shrink-0"
           >
-            <Link
-              to="/"
-              className="flex items-center gap-3 flex-shrink-0 group cursor-pointer focus:outline-none"
+            <button
+              type="button"
+              onClick={() => setIsBioModalOpen(true)}
+              title="Click to view Bio & Profile"
+              className="flex items-center gap-3 flex-shrink-0 group cursor-pointer focus:outline-none text-left bg-transparent border-0 p-0"
             >
               <div className="relative flex-shrink-0">
                 {logoImage ? (
@@ -177,14 +201,19 @@ export default function Navbar() {
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
               </div>
               <div className="flex flex-col flex-shrink-0 leading-tight">
-                <span className="font-bold tracking-[0.14em] uppercase text-slate-100 text-sm sm:text-base whitespace-nowrap flex-shrink-0 transition-colors group-hover:text-indigo-300">
-                  {brandName}<span className="text-indigo-400">.</span>
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold tracking-[0.14em] uppercase text-slate-100 text-sm sm:text-base whitespace-nowrap flex-shrink-0 transition-colors group-hover:text-indigo-300">
+                    {brandName}<span className="text-indigo-400">.</span>
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium group-hover:bg-indigo-500/20 transition-colors hidden sm:inline-block">
+                    Bio
+                  </span>
+                </div>
                 <span className="text-[10px] tracking-widest text-slate-400 uppercase font-medium whitespace-nowrap hidden sm:block">
-                  Developer
+                  {profileBioData?.title || "Developer"}
                 </span>
               </div>
-            </Link>
+            </button>
           </Motion.div>
 
           {/* Desktop Navigation Links */}
@@ -262,6 +291,13 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </nav>
+
+      {/* Profile Bio Modal */}
+      <ProfileBioModal
+        isOpen={isBioModalOpen}
+        onClose={() => setIsBioModalOpen(false)}
+        profileData={profileBioData}
+      />
     </>
   );
 }
