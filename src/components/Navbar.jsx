@@ -60,12 +60,13 @@ export default function Navbar() {
             bio: data.data.bio || "Passionate full-stack developer dedicated to building responsive, scalable, and user-friendly digital experiences.",
             location: data.data.location || "Remote / Nepal",
             availability: data.data.availability || "Available for new projects",
-            email: data.data.email || "nirpeshdhungel7@gmail.com",
+            email: data.data.email || "",
             github: data.data.github || "",
             linkedin: data.data.linkedin || "",
             twitter: data.data.twitter || "",
             website: data.data.website || "",
-            phone: data.data.phone || ""
+            phone: data.data.phone || "",
+            interests: data.data.interests || []
           });
 
           if (data.data.avatar) {

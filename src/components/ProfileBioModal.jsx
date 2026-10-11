@@ -15,12 +15,14 @@ import {
   FaPaperPlane,
   FaCopy,
   FaCheck,
-  FaUserCircle
+  FaUserCircle,
+  FaHeart
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 export default function ProfileBioModal({ isOpen, onClose, profileData }) {
-  const [copied, setCopied] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
 
   if (!isOpen) return null;
 
@@ -31,21 +33,32 @@ export default function ProfileBioModal({ isOpen, onClose, profileData }) {
     bio = "Passionate full-stack developer dedicated to building responsive, scalable, and user-friendly digital experiences.",
     location = "Remote / Nepal",
     availability = "Available for new projects",
-    email = "nirpeshdhungel7@gmail.com",
+    email = "",
     github = "",
     linkedin = "",
     twitter = "",
     website = "",
-    phone = ""
+    phone = "",
+    interests = ["🎮 Gaming", "🎤 Singing", "🎬 Entertainment", "💻 Coding"]
   } = profileData || {};
 
   const handleCopyEmail = (e) => {
     e.stopPropagation();
     if (email) {
       navigator.clipboard.writeText(email);
-      setCopied(true);
+      setCopiedEmail(true);
       toast.success("Email copied to clipboard!");
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopiedEmail(false), 2000);
+    }
+  };
+
+  const handleCopyPhone = (e) => {
+    e.stopPropagation();
+    if (phone) {
+      navigator.clipboard.writeText(phone);
+      setCopiedPhone(true);
+      toast.success("Phone number copied to clipboard!");
+      setTimeout(() => setCopiedPhone(false), 2000);
     }
   };
 
@@ -68,7 +81,7 @@ export default function ProfileBioModal({ isOpen, onClose, profileData }) {
           exit={{ opacity: 0, scale: 0.92, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-lg bg-slate-900/95 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl z-10 overflow-hidden my-auto"
+          className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto bg-slate-900/95 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl z-10 scrollbar-thin scrollbar-thumb-white/10 my-auto"
         >
           {/* Subtle Top Glow Gradient */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-28 bg-gradient-to-b from-indigo-500/25 via-indigo-600/10 to-transparent blur-2xl pointer-events-none" />
@@ -76,7 +89,7 @@ export default function ProfileBioModal({ isOpen, onClose, profileData }) {
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 text-slate-400 hover:text-white p-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer"
+            className="absolute top-5 right-5 text-slate-400 hover:text-white p-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer z-20"
             title="Close"
           >
             <FaTimes size={16} />
@@ -137,6 +150,25 @@ export default function ProfileBioModal({ isOpen, onClose, profileData }) {
               </p>
             </div>
 
+            {/* Interests & Hobbies Section */}
+            {interests && interests.length > 0 && (
+              <div className="w-full mt-3 p-4 rounded-2xl bg-white/5 border border-white/10 text-left">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
+                  <FaHeart className="text-pink-400 text-[11px]" /> Interests & Hobbies
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {interests.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-950/70 text-slate-200 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-600/15 transition-all shadow-sm"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Email Bar with Click to Copy */}
             {email && (
               <div className="w-full mt-3 flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-white/10 text-xs">
@@ -144,7 +176,7 @@ export default function ProfileBioModal({ isOpen, onClose, profileData }) {
                   <FaEnvelope className="text-indigo-400 flex-shrink-0" />
                   <a
                     href={`mailto:${email}`}
-                    className="truncate hover:text-indigo-300 transition-colors"
+                    className="truncate hover:text-indigo-300 transition-colors font-medium"
                   >
                     {email}
                   </a>
@@ -154,9 +186,40 @@ export default function ProfileBioModal({ isOpen, onClose, profileData }) {
                   className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 transition-all text-[11px] cursor-pointer flex-shrink-0 ml-2"
                   title="Copy email"
                 >
-                  {copied ? <FaCheck className="text-emerald-400" /> : <FaCopy />}
-                  {copied ? "Copied" : "Copy"}
+                  {copiedEmail ? <FaCheck className="text-emerald-400" /> : <FaCopy />}
+                  {copiedEmail ? "Copied" : "Copy"}
                 </button>
+              </div>
+            )}
+
+            {/* Phone Number Bar with Call & Copy */}
+            {phone && (
+              <div className="w-full mt-2.5 flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-white/10 text-xs">
+                <div className="flex items-center gap-2 text-slate-300 truncate">
+                  <FaPhone className="text-emerald-400 flex-shrink-0" />
+                  <a
+                    href={`tel:${phone}`}
+                    className="truncate hover:text-emerald-300 transition-colors font-medium"
+                  >
+                    {phone}
+                  </a>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                  <a
+                    href={`tel:${phone}`}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition-all text-[11px] cursor-pointer"
+                  >
+                    Call
+                  </a>
+                  <button
+                    onClick={handleCopyPhone}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all text-[11px] cursor-pointer"
+                    title="Copy phone"
+                  >
+                    {copiedPhone ? <FaCheck className="text-emerald-400" /> : <FaCopy />}
+                    {copiedPhone ? "Copied" : "Copy"}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -204,15 +267,6 @@ export default function ProfileBioModal({ isOpen, onClose, profileData }) {
                   title="Portfolio / Website"
                 >
                   <FaGlobe size={18} />
-                </a>
-              )}
-              {phone && (
-                <a
-                  href={`tel:${phone}`}
-                  className="w-10 h-10 rounded-xl bg-white/5 hover:bg-emerald-600/30 border border-white/10 hover:border-emerald-500/50 flex items-center justify-center text-slate-300 hover:text-white transition-all shadow-sm"
-                  title="Phone / Contact"
-                >
-                  <FaPhone size={16} />
                 </a>
               )}
             </div>

@@ -19,25 +19,65 @@ import {
   FaAlignLeft,
   FaEye,
   FaPaperPlane,
-  FaRobot
+  FaRobot,
+  FaHeart,
+  FaCheck,
+  FaPlus,
+  FaTrash
 } from "react-icons/fa";
 import { motion as Motion } from "framer-motion";
+
+const PRESET_INTERESTS = [
+  "🎮 Gaming",
+  "🎤 Singing",
+  "🎬 Entertainment",
+  "🎧 Music",
+  "💻 Coding",
+  "🎸 Guitar",
+  "✈️ Traveling",
+  "📸 Photography",
+  "⚽ Football",
+  "🏋️ Gym & Fitness",
+  "📚 Reading",
+  "☕ Coffee",
+  "🎨 Art & Design",
+  "♟️ Chess",
+  "🍳 Cooking",
+  "🚴 Cycling",
+  "⛺ Trekking",
+  "✍️ Writing",
+  "🤖 AI & Tech",
+  "🏊 Swimming",
+  "🏏 Cricket",
+  "🧘 Meditation",
+  "🍕 Foodie",
+  "🎥 Filmmaking"
+];
 
 export default function AdminProfile() {
   const { refreshProfile } = useOutletContext() || {};
 
   // Form States
   const [name, setName] = useState("NIRPESH");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("Full Stack Developer");
   const [bio, setBio] = useState("Passionate full-stack developer dedicated to building responsive, scalable, and user-friendly digital experiences.");
   const [location, setLocation] = useState("Remote / Nepal");
   const [availability, setAvailability] = useState("Available for new projects");
-  const [email, setEmail] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [twitter, setTwitter] = useState("");
   const [website, setWebsite] = useState("");
-  const [phone, setPhone] = useState("");
+  
+  // Interests state (array of strings with emojis)
+  const [selectedInterests, setSelectedInterests] = useState([
+    "🎮 Gaming",
+    "🎤 Singing",
+    "🎬 Entertainment",
+    "💻 Coding"
+  ]);
+  const [customInterest, setCustomInterest] = useState("");
 
   const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
@@ -68,6 +108,7 @@ export default function AdminProfile() {
           if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
           setName(n);
           setEmail(data.data.email || "");
+          setPhone(data.data.phone || "");
           setTitle(data.data.title || "Full Stack Developer");
           setBio(data.data.bio || "Passionate full-stack developer dedicated to building responsive, scalable, and user-friendly digital experiences.");
           setLocation(data.data.location || "Remote / Nepal");
@@ -76,7 +117,10 @@ export default function AdminProfile() {
           setLinkedin(data.data.linkedin || "");
           setTwitter(data.data.twitter || "");
           setWebsite(data.data.website || "");
-          setPhone(data.data.phone || "");
+
+          if (Array.isArray(data.data.interests) && data.data.interests.length > 0) {
+            setSelectedInterests(data.data.interests);
+          }
 
           if (data.data.avatar) {
             setAvatarPreview(resolveImageUrl(data.data.avatar));
@@ -91,6 +135,27 @@ export default function AdminProfile() {
 
     fetchProfileData();
   }, [apiBaseUrl, token]);
+
+  const toggleInterest = (item) => {
+    if (selectedInterests.includes(item)) {
+      setSelectedInterests(selectedInterests.filter((i) => i !== item));
+    } else {
+      setSelectedInterests([...selectedInterests, item]);
+    }
+  };
+
+  const handleAddCustomInterest = (e) => {
+    e.preventDefault();
+    if (!customInterest.trim()) return;
+    const trimmed = customInterest.trim();
+    if (!selectedInterests.includes(trimmed)) {
+      setSelectedInterests([...selectedInterests, trimmed]);
+      setCustomInterest("");
+      toast.success(`Added "${trimmed}"`);
+    } else {
+      toast.info("Already added");
+    }
+  };
 
   const compressImage = (file, maxDimension = 1600, quality = 0.88) => {
     return new Promise((resolve) => {
@@ -166,11 +231,17 @@ export default function AdminProfile() {
       toast.error("Please enter a valid display name");
       return;
     }
+    if (!email.trim()) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
 
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("name", name.trim());
+      formData.append("email", email.trim().toLowerCase());
+      formData.append("phone", phone.trim());
       formData.append("title", title.trim());
       formData.append("bio", bio.trim());
       formData.append("location", location.trim());
@@ -179,7 +250,7 @@ export default function AdminProfile() {
       formData.append("linkedin", linkedin.trim());
       formData.append("twitter", twitter.trim());
       formData.append("website", website.trim());
-      formData.append("phone", phone.trim());
+      formData.append("interests", JSON.stringify(selectedInterests));
 
       if (avatarFile) {
         formData.append("avatar", avatarFile);
@@ -195,9 +266,14 @@ export default function AdminProfile() {
 
       const data = await res.json();
       if (data.success) {
-        toast.success("Profile & Bio saved successfully to database!");
-        if (data.data && data.data.avatar) {
-          setAvatarPreview(resolveImageUrl(data.data.avatar));
+        toast.success("Profile, Email, Phone & Interests saved to database!");
+        if (data.data) {
+          if (data.data.avatar) {
+            setAvatarPreview(resolveImageUrl(data.data.avatar));
+          }
+          if (data.data.email) {
+            localStorage.setItem("adminEmail", data.data.email);
+          }
         }
         setAvatarFile(null);
         if (refreshProfile) {
@@ -222,22 +298,22 @@ export default function AdminProfile() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-slate-100 flex items-center gap-3">
-          <FaUserCircle className="text-indigo-400" /> Admin Profile & Bio Settings
+          <FaUserCircle className="text-indigo-400" /> Admin Profile, Bio & Interests
         </h1>
         <p className="text-slate-400 mt-2">
-          Manage your display name, round avatar, professional title, bio and social links. When visitors click your profile in the client-side navbar, they will see these details in a modern interactive card.
+          Manage your round avatar, display name, dynamic email, phone number, bio and tick your favorite hobbies/interests. Everything updates live on the client side modal!
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Main Form (8 Cols) */}
+        {/* Main Form (7 Cols) */}
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-7 bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl"
+          className="lg:col-span-7 bg-slate-900/80 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar Section */}
@@ -283,7 +359,7 @@ export default function AdminProfile() {
               </div>
             </div>
 
-            {/* Basic Information */}
+            {/* Display Name & Dynamic Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
@@ -301,6 +377,23 @@ export default function AdminProfile() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <FaEnvelope className="text-indigo-400" /> Dynamic Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. nirpeshdhungel7@gmail.com"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Title & Phone Number */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                   <FaBriefcase className="text-indigo-400" /> Professional Title
                 </label>
                 <input
@@ -309,6 +402,19 @@ export default function AdminProfile() {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Full Stack Developer"
                   className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <FaPhone className="text-emerald-400" /> Phone Number / WhatsApp
+                </label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+977 98XXXXXXXX"
+                  className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm"
                 />
               </div>
             </div>
@@ -356,15 +462,82 @@ export default function AdminProfile() {
                 rows={4}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Write a brief bio about your skills, passion, experience, or what kind of projects you build..."
+                placeholder="Write a brief bio about yourself, passion, experience..."
                 className="w-full bg-slate-950/80 border border-white/10 rounded-xl p-3.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm leading-relaxed"
               />
             </div>
 
-            {/* Social & Contact Links */}
-            <div className="pt-2 border-t border-white/10 space-y-4">
+            {/* Interests & Hobbies Checkbox Grid (Tick marks with emojis) */}
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-200 flex items-center gap-2">
+                  <FaHeart className="text-pink-400" /> Hobbies & Interests ({selectedInterests.length} selected)
+                </label>
+                <span className="text-xs text-indigo-400">Click to tick / untick</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Tick the activities, entertainment, games or hobbies you love. They will show up with emojis in your client-side profile card!
+              </p>
+
+              {/* Preset 24 options with checkboxes */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-white/10">
+                {PRESET_INTERESTS.map((item) => {
+                  const isChecked = selectedInterests.includes(item);
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => toggleInterest(item)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
+                        isChecked
+                          ? "bg-indigo-600/30 border-indigo-500/60 text-white shadow-[0_0_12px_rgba(99,102,241,0.25)]"
+                          : "bg-slate-950/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200"
+                      }`}
+                    >
+                      <span className="truncate">{item}</span>
+                      <span
+                        className={`w-4 h-4 rounded-md flex items-center justify-center text-[10px] ml-1.5 flex-shrink-0 transition-colors ${
+                          isChecked
+                            ? "bg-indigo-500 text-white"
+                            : "border border-white/20 bg-slate-900"
+                        }`}
+                      >
+                        {isChecked && <FaCheck />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Add Custom Interest Input */}
+              <div className="flex gap-2 pt-1">
+                <input
+                  type="text"
+                  value={customInterest}
+                  onChange={(e) => setCustomInterest(e.target.value)}
+                  placeholder="Add custom hobby (e.g. 🛹 Skateboarding)..."
+                  className="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddCustomInterest(e);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomInterest}
+                  className="px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <FaPlus className="text-[10px]" /> Add
+                </button>
+              </div>
+            </div>
+
+            {/* Social Links */}
+            <div className="pt-4 border-t border-white/10 space-y-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Social & Contact Links (Optional)
+                Social Links (Optional)
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -419,19 +592,6 @@ export default function AdminProfile() {
                     className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-xs"
                   />
                 </div>
-
-                <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
-                    <FaPhone className="text-emerald-400" /> Phone / WhatsApp (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+977 98XXXXXXXX"
-                    className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-xs"
-                  />
-                </div>
               </div>
             </div>
 
@@ -459,7 +619,7 @@ export default function AdminProfile() {
         {/* Live Visitor Preview Card (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-300 px-1">
-            <FaEye className="text-indigo-400" /> Live Visitor Preview (Bio Card)
+            <FaEye className="text-indigo-400" /> Live Visitor Preview (Client Side Popup)
           </div>
 
           <div className="bg-slate-900/90 border border-white/15 rounded-3xl p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden">
@@ -515,31 +675,81 @@ export default function AdminProfile() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
                   About / Bio
                 </span>
-                <p className="text-slate-200 text-xs leading-relaxed line-clamp-4">
+                <p className="text-slate-200 text-xs leading-relaxed line-clamp-3">
                   {bio || "Your bio will be displayed here for visitors to read."}
                 </p>
               </div>
 
-              {/* Social Icons */}
-              <div className="flex items-center justify-center gap-2 mt-4 text-slate-400">
+              {/* Ticked Interests Preview */}
+              {selectedInterests.length > 0 && (
+                <div className="w-full mt-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-left">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1">
+                    <FaHeart className="text-pink-400 text-[10px]" /> Interests & Hobbies
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedInterests.map((item, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 rounded-full bg-slate-950/80 text-[11px] text-slate-300 border border-white/10 shadow-sm"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Email Bar */}
+              {email && (
+                <div className="w-full mt-3 flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-white/10 text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-300 truncate">
+                    <FaEnvelope className="text-indigo-400 text-xs" />
+                    <span className="truncate">{email}</span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-600/20 text-indigo-300 border border-indigo-500/20">
+                    Copy
+                  </span>
+                </div>
+              )}
+
+              {/* Dynamic Phone Bar */}
+              {phone && (
+                <div className="w-full mt-2 flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-white/10 text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-300 truncate">
+                    <FaPhone className="text-emerald-400 text-xs" />
+                    <span className="truncate font-medium">{phone}</span>
+                  </div>
+                  <div className="flex gap-1 text-[10px]">
+                    <span className="px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-300 border border-emerald-500/20">
+                      Call
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10">
+                      Copy
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Social Icons Mock */}
+              <div className="flex items-center justify-center gap-2 mt-3.5 text-slate-400">
                 {github && (
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-300 border border-white/10">
-                    <FaGithub size={14} />
+                  <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-slate-300 border border-white/10">
+                    <FaGithub size={13} />
                   </div>
                 )}
                 {linkedin && (
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 border border-white/10">
-                    <FaLinkedin size={14} />
+                  <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 border border-white/10">
+                    <FaLinkedin size={13} />
                   </div>
                 )}
                 {twitter && (
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-sky-400 border border-white/10">
-                    <FaTwitter size={14} />
+                  <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-sky-400 border border-white/10">
+                    <FaTwitter size={13} />
                   </div>
                 )}
                 {website && (
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-indigo-400 border border-white/10">
-                    <FaGlobe size={14} />
+                  <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-indigo-400 border border-white/10">
+                    <FaGlobe size={13} />
                   </div>
                 )}
               </div>
