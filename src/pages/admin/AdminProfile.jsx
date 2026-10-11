@@ -51,15 +51,71 @@ export default function AdminProfile() {
     fetchProfileData();
   }, [apiBaseUrl, token]);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size must be less than 5MB");
+  const compressImage = (file, maxDimension = 1600, quality = 0.88) => {
+    return new Promise((resolve) => {
+      if (!file || !file.type.startsWith("image/")) {
+        resolve(file);
         return;
       }
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file);
+                return;
+              }
+              const optimized = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              });
+              resolve(optimized);
+            },
+            "image/jpeg",
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error("Image size must be less than 100MB");
+        return;
+      }
+      try {
+        toast.info("Optimizing image for fast upload...", { autoClose: 1200 });
+        const optimized = await compressImage(file);
+        setAvatarFile(optimized);
+        setAvatarPreview(URL.createObjectURL(optimized));
+      } catch (err) {
+        setAvatarFile(file);
+        setAvatarPreview(URL.createObjectURL(file));
+      }
     }
   };
 
@@ -139,10 +195,11 @@ export default function AdminProfile() {
                   <img
                     src={avatarPreview}
                     alt="Admin Avatar"
+                    onError={() => setAvatarPreview("")}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <FaUserCircle className="w-full h-full text-slate-700" />
+                  <FaUserCircle className="w-full h-full text-slate-700 p-2" />
                 )}
               </div>
 
@@ -167,10 +224,10 @@ export default function AdminProfile() {
                 {name || "NIRPESH"}
               </h3>
               <p className="text-sm text-slate-400">
-                Click the camera icon to upload a round profile photo.
+                Click the camera icon to upload a profile photo (supports up to 100MB).
               </p>
               <div className="inline-flex items-center gap-2 text-xs text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                <FaCheckCircle className="text-xs" /> Stored securely in MongoDB
+                <FaCheckCircle className="text-xs" /> Auto-optimized for fast loading & stored in MongoDB
               </div>
             </div>
           </div>

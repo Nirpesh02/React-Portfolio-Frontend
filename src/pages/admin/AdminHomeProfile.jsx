@@ -50,11 +50,72 @@ export default function AdminHomeProfile() {
     fetchProfile();
   }, [apiBaseUrl]);
 
-  const handleFileChange = (e) => {
+  const compressImage = (file, maxDimension = 1600, quality = 0.88) => {
+    return new Promise((resolve) => {
+      if (!file || !file.type.startsWith("image/")) {
+        resolve(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file);
+                return;
+              }
+              const optimized = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              });
+              resolve(optimized);
+            },
+            "image/jpeg",
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
+    const name = e.target.name;
     if (file) {
-      setSelectedFiles({ ...selectedFiles, [e.target.name]: file });
-      setPreviews({ ...previews, [e.target.name]: URL.createObjectURL(file) });
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error("Image size must be less than 100MB");
+        return;
+      }
+      try {
+        toast.info("Optimizing image for fast upload...", { autoClose: 1200 });
+        const optimized = await compressImage(file);
+        setSelectedFiles((prev) => ({ ...prev, [name]: optimized }));
+        setPreviews((prev) => ({ ...prev, [name]: URL.createObjectURL(optimized) }));
+      } catch (err) {
+        setSelectedFiles((prev) => ({ ...prev, [name]: file }));
+        setPreviews((prev) => ({ ...prev, [name]: URL.createObjectURL(file) }));
+      }
     }
   };
 
