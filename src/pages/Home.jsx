@@ -31,9 +31,10 @@ const skills = ["React", "Tailwind", "Framer Motion", "Responsive UI"];
 
 export default function Home() {
   const [profileImages, setProfileImages] = useState({
-    smallImage: "/images/project4.jpg",
-    largeImage: "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+    smallImage: "",
+    largeImage: ""
   });
+  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
 
   const apiBaseUrl =
     import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
@@ -41,8 +42,10 @@ export default function Home() {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const resolveImageUrl = (url, fallback) => {
+        const resolveImageUrl = (url, fallback = "") => {
           if (!url) return fallback;
+          if (url.startsWith("data:")) return url;
+          if (url.startsWith("http://") || url.startsWith("https://")) return url;
           if (url.startsWith('/uploads')) return `${apiBaseUrl}${url}`;
           return url;
         };
@@ -62,17 +65,16 @@ export default function Home() {
         const data = await res.json();
         const homeData = data.success && data.data ? data.data : {};
         
-        // Priority: Admin avatar, or custom uploaded large image
+        // Priority: Admin avatar, or custom uploaded large image, or small image
         const chosenHeroImage = 
           adminAvatar ||
           (homeData.largeImage && !homeData.largeImage.includes("bing.net") ? homeData.largeImage : "") ||
-          adminAvatar ||
-          homeData.largeImage ||
-          "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3";
+          homeData.smallImage ||
+          "";
 
         setProfileImages({
-          smallImage: resolveImageUrl(adminAvatar || homeData.smallImage, "/images/project4.jpg"),
-          largeImage: resolveImageUrl(chosenHeroImage, "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3")
+          smallImage: resolveImageUrl(adminAvatar || homeData.smallImage, ""),
+          largeImage: resolveImageUrl(chosenHeroImage, "")
         });
       } catch (error) {
         console.error("Failed to load home images", error);
@@ -190,17 +192,28 @@ export default function Home() {
               </div>
 
               <div className="relative min-h-[340px] sm:min-h-[420px]">
-                <Motion.img
-                  src={profileImages.largeImage}
-                  alt="Profile"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3";
-                  }}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  whileHover={{ scale: 1.03 }}
-                  transition={{ type: "spring", stiffness: 120 }}
-                />
+                {profileImages.largeImage ? (
+                  <Motion.img
+                    src={profileImages.largeImage}
+                    alt="NIRPESH Profile"
+                    onLoad={() => setHeroImageLoaded(true)}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.style.display = "none";
+                    }}
+                    className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+                      heroImageLoaded ? "opacity-100" : "opacity-0"
+                    }`}
+                    whileHover={{ scale: 1.03 }}
+                    transition={{ type: "spring", stiffness: 120 }}
+                  />
+                ) : null}
+
+                {!heroImageLoaded && (
+                  <div className="absolute inset-0 bg-slate-900/80 animate-pulse flex items-center justify-center">
+                    <div className="h-9 w-9 rounded-full border-2 border-indigo-500/30 border-t-indigo-400 animate-spin" />
+                  </div>
+                )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
 

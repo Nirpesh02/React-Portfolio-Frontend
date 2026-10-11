@@ -33,7 +33,9 @@ export default function AdminProfile() {
         });
         const data = await res.json();
         if (data.success && data.data) {
-          setName(data.data.name || "Nir P Esh");
+          let n = data.data.name || "NIRPESH";
+          if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
+          setName(n);
           setEmail(data.data.email || "");
           if (data.data.avatar) {
             setAvatarPreview(resolveImageUrl(data.data.avatar));
@@ -162,7 +164,7 @@ export default function AdminProfile() {
 
             <div className="space-y-2 text-center sm:text-left">
               <h3 className="text-xl font-bold text-slate-100">
-                {name || "Nir P Esh"}
+                {name || "NIRPESH"}
               </h3>
               <p className="text-sm text-slate-400">
                 Click the camera icon to upload a round profile photo.
@@ -184,7 +186,7 @@ export default function AdminProfile() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Nir P Esh"
+                placeholder="e.g. NIRPESH"
                 className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm"
               />
             </div>

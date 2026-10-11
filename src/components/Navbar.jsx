@@ -16,7 +16,8 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [logoImage, setLogoImage] = useState("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQm7093jgVNBcksGpxCAaQvJVGC7tbt0v54g&s");
+  const [logoImage, setLogoImage] = useState("");
+  const [logoLoaded, setLogoLoaded] = useState(false);
   const [brandName, setBrandName] = useState("NIRPESH");
   const location = useLocation();
   const active = location.pathname === "/" ? "home" : location.pathname.substring(1);
@@ -24,7 +25,7 @@ export default function Navbar() {
   const apiBaseUrl =
     import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
 
-  const resolveImageUrl = (url, fallback = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQm7093jgVNBcksGpxCAaQvJVGC7tbt0v54g&s") => {
+  const resolveImageUrl = (url, fallback = "") => {
     if (!url) return fallback;
     if (url.startsWith("data:")) return url;
     if (url.startsWith("http://") || url.startsWith("https://")) return url;
@@ -39,20 +40,25 @@ export default function Navbar() {
         const res = await fetch(`${apiBaseUrl}/api/auth/profile`);
         const data = await res.json();
         if (data.success && data.data) {
+          if (data.data.name) {
+            let n = data.data.name.trim();
+            if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
+            setBrandName(n);
+          }
           if (data.data.avatar) {
             setLogoImage(resolveImageUrl(data.data.avatar));
+            return;
           }
-          if (data.data.name) {
-            setBrandName(data.data.name);
-          }
-          if (data.data.avatar) return;
         }
 
         // Priority 2: Fallback to home-profile
         const homeRes = await fetch(`${apiBaseUrl}/api/home-profile`);
         const homeData = await homeRes.json();
-        if (homeData.success && homeData.data && homeData.data.smallImage) {
-          setLogoImage(resolveImageUrl(homeData.data.smallImage));
+        if (homeData.success && homeData.data) {
+          const img = homeData.data.smallImage || homeData.data.largeImage;
+          if (img) {
+            setLogoImage(resolveImageUrl(img));
+          }
         }
       } catch (error) {
         console.error("Failed to load logo image", error);
@@ -145,17 +151,29 @@ export default function Navbar() {
               className="flex items-center gap-3 flex-shrink-0 group cursor-pointer focus:outline-none"
             >
               <div className="relative flex-shrink-0">
-                <img
-                  src={logoImage}
-                  alt="Portfolio Logo"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQm7093jgVNBcksGpxCAaQvJVGC7tbt0v54g&s";
-                  }}
-                  className={`rounded-full border-2 border-indigo-500/40 object-cover transition-all duration-300 group-hover:border-indigo-400 group-hover:scale-105 flex-shrink-0 ${
-                    scrolled ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"
-                  }`}
-                />
+                {logoImage ? (
+                  <img
+                    src={logoImage}
+                    alt="Portfolio Logo"
+                    onLoad={() => setLogoLoaded(true)}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.style.display = "none";
+                    }}
+                    className={`rounded-full border-2 border-indigo-500/40 object-cover transition-all duration-300 group-hover:border-indigo-400 group-hover:scale-105 flex-shrink-0 ${
+                      logoLoaded ? "opacity-100" : "opacity-0"
+                    } ${
+                      scrolled ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"
+                    }`}
+                  />
+                ) : null}
+                {!logoLoaded && (
+                  <div
+                    className={`rounded-full border-2 border-indigo-500/30 bg-slate-800/80 animate-pulse flex-shrink-0 ${
+                      scrolled ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"
+                    }`}
+                  />
+                )}
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
               </div>
               <div className="flex flex-col flex-shrink-0 leading-tight">

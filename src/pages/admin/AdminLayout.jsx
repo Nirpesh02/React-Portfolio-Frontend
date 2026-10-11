@@ -12,7 +12,7 @@ export default function AdminLayout() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [isChangingPass, setIsChangingPass] = useState(false);
-  const [adminProfile, setAdminProfile] = useState({ name: "Nir P Esh", avatar: "" });
+  const [adminProfile, setAdminProfile] = useState({ name: "NIRPESH", avatar: "" });
 
   const token = localStorage.getItem("adminToken");
   const apiBaseUrl = import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
@@ -32,8 +32,10 @@ export default function AdminLayout() {
       });
       const data = await res.json();
       if (data.success && data.data) {
+        let n = data.data.name || "NIRPESH";
+        if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
         setAdminProfile({
-          name: data.data.name || "Nir P Esh",
+          name: n,
           avatar: data.data.avatar || "",
         });
       }
@@ -137,7 +139,7 @@ export default function AdminLayout() {
             </div>
             <div className="flex flex-col min-w-0">
               <span className="font-bold tracking-wide text-slate-100 text-sm truncate group-hover:text-indigo-300 transition-colors">
-                {adminProfile.name || "Nir P Esh"}
+                {adminProfile.name || "NIRPESH"}
               </span>
               <span className="text-[10px] tracking-widest text-indigo-400 font-semibold uppercase">
                 Admin Panel
@@ -225,7 +227,7 @@ export default function AdminLayout() {
                 )}
               </div>
               <span className="font-bold text-sm text-slate-100 truncate max-w-[130px]">
-                {adminProfile.name || "Nir P Esh"}
+                {adminProfile.name || "NIRPESH"}
               </span>
             </Link>
           </div>
