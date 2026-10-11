@@ -17,6 +17,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   const [logoImage, setLogoImage] = useState("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQm7093jgVNBcksGpxCAaQvJVGC7tbt0v54g&s");
+  const [brandName, setBrandName] = useState("NIRPESH");
   const location = useLocation();
   const active = location.pathname === "/" ? "home" : location.pathname.substring(1);
 
@@ -26,10 +27,25 @@ export default function Navbar() {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const res = await fetch(`${apiBaseUrl}/api/home-profile`);
+        // Priority 1: Fetch Admin profile avatar & name
+        const res = await fetch(`${apiBaseUrl}/api/auth/profile`);
         const data = await res.json();
-        if (data.success && data.data && data.data.smallImage) {
-          const url = data.data.smallImage;
+        if (data.success && data.data) {
+          if (data.data.avatar) {
+            const url = data.data.avatar;
+            setLogoImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+          }
+          if (data.data.name) {
+            setBrandName(data.data.name);
+          }
+          if (data.data.avatar) return;
+        }
+
+        // Priority 2: Fallback to home-profile
+        const homeRes = await fetch(`${apiBaseUrl}/api/home-profile`);
+        const homeData = await homeRes.json();
+        if (homeData.success && homeData.data && homeData.data.smallImage) {
+          const url = homeData.data.smallImage;
           setLogoImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
         }
       } catch (error) {
@@ -134,7 +150,7 @@ export default function Navbar() {
               </div>
               <div className="flex flex-col flex-shrink-0 leading-tight">
                 <span className="font-bold tracking-[0.14em] uppercase text-slate-100 text-sm sm:text-base whitespace-nowrap flex-shrink-0 transition-colors group-hover:text-indigo-300">
-                  NIRPESH<span className="text-indigo-400">.</span>
+                  {brandName}<span className="text-indigo-400">.</span>
                 </span>
                 <span className="text-[10px] tracking-widest text-slate-400 uppercase font-medium whitespace-nowrap hidden sm:block">
                   Developer

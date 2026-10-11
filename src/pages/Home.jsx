@@ -41,17 +41,28 @@ export default function Home() {
   useEffect(() => {
     const fetchImages = async () => {
       try {
+        const resolveImageUrl = (url, fallback) => {
+          if (!url) return fallback;
+          if (url.startsWith('/uploads')) return `${apiBaseUrl}${url}`;
+          return url;
+        };
+
+        let adminAvatar = "";
+        try {
+          const authRes = await fetch(`${apiBaseUrl}/api/auth/profile`);
+          const authData = await authRes.json();
+          if (authData.success && authData.data && authData.data.avatar) {
+            adminAvatar = authData.data.avatar;
+          }
+        } catch (e) {
+          // ignore fallback
+        }
+
         const res = await fetch(`${apiBaseUrl}/api/home-profile`);
         const data = await res.json();
         if (data.success && data.data) {
-          const resolveImageUrl = (url, fallback) => {
-            if (!url) return fallback;
-            if (url.startsWith('/uploads')) return `${apiBaseUrl}${url}`;
-            return url;
-          };
-
           setProfileImages({
-            smallImage: resolveImageUrl(data.data.smallImage, "/images/project4.jpg"),
+            smallImage: resolveImageUrl(adminAvatar || data.data.smallImage, "/images/project4.jpg"),
             largeImage: resolveImageUrl(data.data.largeImage, "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3")
           });
         }
