@@ -60,12 +60,20 @@ export default function Home() {
 
         const res = await fetch(`${apiBaseUrl}/api/home-profile`);
         const data = await res.json();
-        if (data.success && data.data) {
-          setProfileImages({
-            smallImage: resolveImageUrl(adminAvatar || data.data.smallImage, "/images/project4.jpg"),
-            largeImage: resolveImageUrl(data.data.largeImage, "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3")
-          });
-        }
+        const homeData = data.success && data.data ? data.data : {};
+        
+        // Priority: Admin avatar, or custom uploaded large image
+        const chosenHeroImage = 
+          adminAvatar ||
+          (homeData.largeImage && !homeData.largeImage.includes("bing.net") ? homeData.largeImage : "") ||
+          adminAvatar ||
+          homeData.largeImage ||
+          "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3";
+
+        setProfileImages({
+          smallImage: resolveImageUrl(adminAvatar || homeData.smallImage, "/images/project4.jpg"),
+          largeImage: resolveImageUrl(chosenHeroImage, "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3")
+        });
       } catch (error) {
         console.error("Failed to load home images", error);
       }
@@ -90,17 +98,6 @@ export default function Home() {
       >
         <div className="space-y-7 text-center md:text-left">
           <div className="flex flex-col items-center gap-4 md:items-start">
-            <div className="relative h-24 w-24 overflow-hidden rounded-full border border-white/15 bg-white/5 shadow-[0_18px_50px_rgba(15,23,42,0.45)] sm:h-28 sm:w-28">
-              <Motion.img
-                src={profileImages.smallImage}
-                alt="Nir P Esh profile"
-                className="h-full w-full object-cover"
-                initial={{ scale: 1.02 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.6 }}
-              />
-            </div>
-
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-slate-300">
               <FaCode className="text-indigo-300" /> Portfolio / Frontend Developer
             </div>
@@ -196,6 +193,10 @@ export default function Home() {
                 <Motion.img
                   src={profileImages.largeImage}
                   alt="Profile"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "https://tse3.mm.bing.net/th/id/OIP.bA_6zy8pfuPWahLUeHiQhAHaJ4?r=0&rs=1&pid=ImgDetMain&o=7&rm=3";
+                  }}
                   className="absolute inset-0 h-full w-full object-cover"
                   whileHover={{ scale: 1.03 }}
                   transition={{ type: "spring", stiffness: 120 }}

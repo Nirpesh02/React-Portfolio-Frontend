@@ -24,6 +24,14 @@ export default function Navbar() {
   const apiBaseUrl =
     import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
 
+  const resolveImageUrl = (url, fallback = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQm7093jgVNBcksGpxCAaQvJVGC7tbt0v54g&s") => {
+    if (!url) return fallback;
+    if (url.startsWith("data:")) return url;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    if (url.startsWith("/uploads")) return `${apiBaseUrl}${url}`;
+    return url;
+  };
+
   useEffect(() => {
     const fetchLogo = async () => {
       try {
@@ -32,8 +40,7 @@ export default function Navbar() {
         const data = await res.json();
         if (data.success && data.data) {
           if (data.data.avatar) {
-            const url = data.data.avatar;
-            setLogoImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+            setLogoImage(resolveImageUrl(data.data.avatar));
           }
           if (data.data.name) {
             setBrandName(data.data.name);
@@ -45,8 +52,7 @@ export default function Navbar() {
         const homeRes = await fetch(`${apiBaseUrl}/api/home-profile`);
         const homeData = await homeRes.json();
         if (homeData.success && homeData.data && homeData.data.smallImage) {
-          const url = homeData.data.smallImage;
-          setLogoImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+          setLogoImage(resolveImageUrl(homeData.data.smallImage));
         }
       } catch (error) {
         console.error("Failed to load logo image", error);
@@ -142,6 +148,10 @@ export default function Navbar() {
                 <img
                   src={logoImage}
                   alt="Portfolio Logo"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQm7093jgVNBcksGpxCAaQvJVGC7tbt0v54g&s";
+                  }}
                   className={`rounded-full border-2 border-indigo-500/40 object-cover transition-all duration-300 group-hover:border-indigo-400 group-hover:scale-105 flex-shrink-0 ${
                     scrolled ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"
                   }`}
