@@ -32,10 +32,8 @@ export default function AdminLayout() {
       });
       const data = await res.json();
       if (data.success && data.data) {
-        let n = data.data.name || "NIRPESH";
-        if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
         setAdminProfile({
-          name: n,
+          name: data.data.name?.trim() || "Admin",
           avatar: data.data.avatar || "",
         });
       }
@@ -237,7 +235,7 @@ export default function AdminLayout() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-          <Outlet context={{ adminProfile, refreshProfile: fetchAdminProfile }} />
+          <Outlet context={{ adminProfile, setAdminProfile, refreshProfile: fetchAdminProfile }} />
         </div>
       </main>
 

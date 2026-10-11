@@ -463,6 +463,7 @@ export default function Chatbot() {
   const [status, setStatus] = useState("locked"); // "locked", "pending", "unlocked"
   const [isLoading, setIsLoading] = useState(false);
   const [adminImage, setAdminImage] = useState(null);
+  const [adminDisplayName, setAdminDisplayName] = useState("Admin");
   
   const [messages, setMessages] = useState([
     { sender: "bot", text: "Hello! I am Nirpesh's AI Assistant. How can I help you with your project today?" }
@@ -482,10 +483,15 @@ export default function Chatbot() {
       try {
         const authRes = await fetch(`${apiBaseUrl}/api/auth/profile`);
         const authData = await authRes.json();
-        if (authData.success && authData.data && authData.data.avatar) {
-          const url = authData.data.avatar;
-          setAdminImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
-          return;
+        if (authData.success && authData.data) {
+          if (authData.data.name) {
+            setAdminDisplayName(authData.data.name.trim());
+          }
+          if (authData.data.avatar) {
+            const url = authData.data.avatar;
+            setAdminImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+            return;
+          }
         }
 
         const res = await fetch(`${apiBaseUrl}/api/home-profile`);
@@ -791,7 +797,7 @@ export default function Chatbot() {
                         ? "bg-emerald-900/40 text-slate-200 border border-emerald-500/20 rounded-bl-none"
                         : "bg-slate-800 text-slate-200 border border-white/5 rounded-bl-none"
                   }`}>
-                    {msg.sender === "admin" && <div className="text-xs text-emerald-400 font-semibold mb-1">Nirpesh (Admin)</div>}
+                    {msg.sender === "admin" && <div className="text-xs text-emerald-400 font-semibold mb-1">{adminDisplayName || "Admin"} (Admin)</div>}
                     {msg.text}
                     <div className={`text-[10px] mt-1.5 opacity-60 ${msg.sender === "user" ? "text-indigo-200 text-right" : "text-slate-400 text-left"}`}>
                       {msg.timestamp ? new Date(msg.timestamp).toLocaleString() : new Date().toLocaleString()}

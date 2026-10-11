@@ -8,6 +8,7 @@ export default function AdminInquiries() {
   const [viewChatId, setViewChatId] = useState(null);
   const [adminReplies, setAdminReplies] = useState({});
   const [adminAvatar, setAdminAvatar] = useState("");
+  const [adminName, setAdminName] = useState("Admin");
   const chatContainerRef = useRef(null);
 
   const apiBaseUrl =
@@ -34,9 +35,14 @@ export default function AdminInquiries() {
       try {
         const res = await fetch(`${apiBaseUrl}/api/auth/profile`);
         const data = await res.json();
-        if (data.success && data.data && data.data.avatar) {
-          const url = data.data.avatar;
-          setAdminAvatar(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+        if (data.success && data.data) {
+          if (data.data.name) {
+            setAdminName(data.data.name.trim());
+          }
+          if (data.data.avatar) {
+            const url = data.data.avatar;
+            setAdminAvatar(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+          }
         }
       } catch (e) {
         console.error("Failed to load admin avatar", e);
@@ -275,7 +281,7 @@ export default function AdminInquiries() {
                                   ? "bg-emerald-900/40 border border-emerald-500/20 text-slate-200 rounded-tl-none"
                                   : "bg-indigo-900/40 border border-indigo-500/20 text-slate-200 rounded-tl-none"
                             }`}>
-                              {msg.sender === "admin" && <div className="text-xs text-emerald-400 font-semibold mb-1">Nirpesh (Admin)</div>}
+                              {msg.sender === "admin" && <div className="text-xs text-emerald-400 font-semibold mb-1">{adminName || "Admin"} (Admin)</div>}
                               {msg.text}
                               <div className="text-[10px] text-slate-400 mt-1.5 opacity-60 text-right">
                                 {new Date(msg.timestamp).toLocaleString()}

@@ -55,10 +55,10 @@ const PRESET_INTERESTS = [
 ];
 
 export default function AdminProfile() {
-  const { refreshProfile } = useOutletContext() || {};
+  const { refreshProfile, setAdminProfile } = useOutletContext() || {};
 
   // Form States
-  const [name, setName] = useState("NIRPESH");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("Full Stack Developer");
@@ -104,9 +104,7 @@ export default function AdminProfile() {
         });
         const data = await res.json();
         if (data.success && data.data) {
-          let n = data.data.name || "NIRPESH";
-          if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
-          setName(n);
+          setName(data.data.name || "");
           setEmail(data.data.email || "");
           setPhone(data.data.phone || "");
           setTitle(data.data.title || "Full Stack Developer");
@@ -268,11 +266,21 @@ export default function AdminProfile() {
       if (data.success) {
         toast.success("Profile, Email, Phone & Interests saved to database!");
         if (data.data) {
+          if (data.data.name) {
+            setName(data.data.name);
+          }
           if (data.data.avatar) {
             setAvatarPreview(resolveImageUrl(data.data.avatar));
           }
           if (data.data.email) {
             localStorage.setItem("adminEmail", data.data.email);
+          }
+          if (setAdminProfile) {
+            setAdminProfile(prev => ({
+              ...prev,
+              name: data.data.name || prev.name,
+              avatar: data.data.avatar || prev.avatar
+            }));
           }
         }
         setAvatarFile(null);

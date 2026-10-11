@@ -43,8 +43,7 @@ export default function Navbar() {
         const res = await fetch(`${apiBaseUrl}/api/auth/profile`);
         const data = await res.json();
         if (data.success && data.data) {
-          let n = data.data.name?.trim() || "NIRPESH";
-          if (n.toLowerCase() === "nir p esh" || n.toLowerCase() === "nir p esh.") n = "NIRPESH";
+          const n = data.data.name?.trim() || "NIRPESH";
           setBrandName(n);
 
           const fullAvatar = resolveImageUrl(data.data.avatar);
