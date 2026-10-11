@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { FaGithub, FaLinkedin, FaTwitter, FaPaperPlane, FaDownload } from "react-icons/fa";
 import { FaEnvelope, FaMapMarkerAlt, FaClock, FaToolbox } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 const contactDetails = [
   {
@@ -283,8 +282,6 @@ export default function Contact() {
           </div>
         </div>
       </div>
-
-      <ToastContainer />
     </section>
   );
 }

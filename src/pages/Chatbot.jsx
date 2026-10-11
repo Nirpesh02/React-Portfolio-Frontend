@@ -691,19 +691,19 @@ export default function Chatbot() {
 
             {status !== "pending" && (
               <form onSubmit={handleUnlockSubmit} className="max-w-md mx-auto">
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your registered email..."
-                    className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] flex items-center gap-2 whitespace-nowrap"
+                    className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
                   >
                     {isLoading ? <FaSpinner className="animate-spin" /> : "Unlock"}
                   </button>

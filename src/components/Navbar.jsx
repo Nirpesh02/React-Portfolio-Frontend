@@ -88,98 +88,133 @@ export default function Navbar() {
     };
   }, []);
 
+  // Auto close mobile drawer on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
   return (
     <>
       <div className="fixed top-0 left-0 z-[999] h-1 w-full bg-transparent">
         <div
-          className="h-full bg-indigo-400 transition-all duration-200"
+          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 shadow-[0_0_10px_rgba(99,102,241,0.6)] transition-all duration-200"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       <nav
-        className={`fixed top-0 left-0 w-full z-50 backdrop-blur-xl
-        border-b border-white/10 transition-all duration-500
-        ${scrolled ? "bg-slate-950/90 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.35)]" : "bg-slate-950/70 py-5"}
+        className={`fixed top-0 left-0 w-full z-50 backdrop-blur-2xl
+        border-b transition-all duration-300
+        ${scrolled 
+          ? "bg-slate-950/90 py-2.5 sm:py-3 border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.55)]" 
+          : "bg-slate-950/70 py-3.5 sm:py-4 border-white/5"
+        }
         text-slate-100`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
           <Motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex items-center gap-3"
+            transition={{ duration: 0.5 }}
+            className="flex-shrink-0"
           >
-            <img
-              src={logoImage}
-              alt="Portfolio Logo"
-              className={`rounded-full border border-white/15 object-cover transition
-              ${scrolled ? "h-8 w-8" : "h-10 w-10"}`}
-            />
-            <h1
-              className={`font-semibold tracking-[0.18em] uppercase text-slate-100
-              ${scrolled ? "text-sm" : "text-base md:text-lg"}`}
+            <Link
+              to="/"
+              className="flex items-center gap-3 flex-shrink-0 group cursor-pointer focus:outline-none"
             >
-              Nir P Esh
-            </h1>
+              <div className="relative flex-shrink-0">
+                <img
+                  src={logoImage}
+                  alt="Portfolio Logo"
+                  className={`rounded-full border-2 border-indigo-500/40 object-cover transition-all duration-300 group-hover:border-indigo-400 group-hover:scale-105 flex-shrink-0 ${
+                    scrolled ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"
+                  }`}
+                />
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+              </div>
+              <div className="flex flex-col flex-shrink-0 leading-tight">
+                <span className="font-bold tracking-[0.14em] uppercase text-slate-100 text-sm sm:text-base whitespace-nowrap flex-shrink-0 transition-colors group-hover:text-indigo-300">
+                  NIRPESH<span className="text-indigo-400">.</span>
+                </span>
+                <span className="text-[10px] tracking-widest text-slate-400 uppercase font-medium whitespace-nowrap hidden sm:block">
+                  Developer
+                </span>
+              </div>
+            </Link>
           </Motion.div>
 
-          <ul className="hidden md:flex space-x-6 font-semibold">
-            {menuItems.map((item) => (
-              <li key={item.name} className="relative group">
-                <Link
-                  to={item.name === "home" ? "/" : `/${item.name}`}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full transition-all
-                  ${
-                    active === item.name
-                      ? "bg-white/10 text-white"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
-                  }`}
-                >
-                  {item.icon}
-                  {item.name.toUpperCase()}
-                </Link>
-                <span className="absolute left-0 -bottom-1 h-[2px] w-full origin-left scale-x-0 bg-indigo-400 transition-transform duration-300 group-hover:scale-x-100" />
-              </li>
-            ))}
-          </ul>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center flex-shrink-0">
+            <ul className="flex items-center gap-1 lg:gap-1.5 p-1 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-lg shadow-black/25">
+              {menuItems.map((item) => {
+                const isActive = active === item.name;
+                return (
+                  <li key={item.name} className="relative flex-shrink-0">
+                    <Link
+                      to={item.name === "home" ? "/" : `/${item.name}`}
+                      className={`flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 py-1.5 rounded-full text-xs lg:text-sm font-medium tracking-wide transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                        isActive
+                          ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-semibold shadow-[0_0_15px_rgba(99,102,241,0.45)]"
+                          : "text-slate-300 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <span className={`text-xs ${isActive ? "text-white" : "text-indigo-400"}`}>
+                        {item.icon}
+                      </span>
+                      <span>{item.name.toUpperCase()}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
 
+          {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-2xl text-slate-200 transition hover:text-white"
+            className="md:hidden p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 transition-all hover:bg-white/10 hover:text-white active:scale-95 flex items-center justify-center focus:outline-none"
+            aria-label="Toggle navigation"
           >
-            {isOpen ? <FaTimes /> : <FaBars />}
+            {isOpen ? <FaTimes className="text-lg" /> : <FaBars className="text-lg" />}
           </button>
         </div>
 
+        {/* Mobile Dropdown Menu */}
         <AnimatePresence>
           {isOpen && (
-            <Motion.ul
-              initial={{ opacity: 0, y: -30, scale: 0.95 }}
+            <Motion.div
+              initial={{ opacity: 0, y: -14, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -30, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 120 }}
-              className="md:hidden flex w-full flex-col items-center
-              bg-slate-950/95 backdrop-blur-xl py-8 space-y-6 font-semibold border-t border-white/10"
+              exit={{ opacity: 0, y: -14, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="md:hidden px-4 pt-2 pb-4"
             >
-              {menuItems.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    to={item.name === "home" ? "/" : `/${item.name}`}
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-6 py-3 rounded-full transition-all
-                    ${
-                      active === item.name
-                        ? "bg-white/10 text-white"
-                        : "text-slate-300 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {item.icon}
-                    {item.name.toUpperCase()}
-                  </Link>
-                </li>
-              ))}
-            </Motion.ul>
+              <div className="rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-2.5 overflow-hidden">
+                <ul className="flex flex-col space-y-1">
+                  {menuItems.map((item) => {
+                    const isActive = active === item.name;
+                    return (
+                      <li key={item.name}>
+                        <Link
+                          to={item.name === "home" ? "/" : `/${item.name}`}
+                          onClick={() => setIsOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                            isActive
+                              ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/30"
+                              : "text-slate-300 hover:bg-white/5 hover:text-white"
+                          }`}
+                        >
+                          <span className={`text-base ${isActive ? "text-white" : "text-indigo-400"}`}>
+                            {item.icon}
+                          </span>
+                          <span className="tracking-wide">{item.name.toUpperCase()}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </Motion.div>
           )}
         </AnimatePresence>
       </nav>

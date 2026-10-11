@@ -12,7 +12,16 @@
     <React.StrictMode>
       <BrowserRouter>
         <App />
-        <ToastContainer theme="dark" position="bottom-right" />
+        <ToastContainer
+          theme="dark"
+          position="top-center"
+          autoClose={4000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+        />
       </BrowserRouter>
     </React.StrictMode>
   );
