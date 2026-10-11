@@ -480,10 +480,18 @@ export default function Chatbot() {
 
     const fetchAdminImage = async () => {
       try {
+        const authRes = await fetch(`${apiBaseUrl}/api/auth/profile`);
+        const authData = await authRes.json();
+        if (authData.success && authData.data && authData.data.avatar) {
+          const url = authData.data.avatar;
+          setAdminImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+          return;
+        }
+
         const res = await fetch(`${apiBaseUrl}/api/home-profile`);
         const data = await res.json();
-        if (data.success && data.data && data.data.smallImage) {
-          const url = data.data.smallImage;
+        if (data.success && data.data && data.data.largeImage) {
+          const url = data.data.largeImage;
           setAdminImage(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
         }
       } catch (error) {

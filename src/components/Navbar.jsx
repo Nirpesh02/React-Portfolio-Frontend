@@ -55,7 +55,7 @@ export default function Navbar() {
         const homeRes = await fetch(`${apiBaseUrl}/api/home-profile`);
         const homeData = await homeRes.json();
         if (homeData.success && homeData.data) {
-          const img = homeData.data.smallImage || homeData.data.largeImage;
+          const img = homeData.data.largeImage;
           if (img) {
             setLogoImage(resolveImageUrl(img));
           }

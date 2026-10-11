@@ -31,7 +31,6 @@ const skills = ["React", "Tailwind", "Framer Motion", "Responsive UI"];
 
 export default function Home() {
   const [profileImages, setProfileImages] = useState({
-    smallImage: "",
     largeImage: ""
   });
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
@@ -57,10 +56,9 @@ export default function Home() {
         // Home hero card strictly uses home-profile largeImage
         const heroImg = (homeData.largeImage && !homeData.largeImage.includes("bing.net"))
           ? homeData.largeImage
-          : (homeData.smallImage || "");
+          : "";
 
         setProfileImages({
-          smallImage: resolveImageUrl(homeData.smallImage, ""),
           largeImage: resolveImageUrl(heroImg, "")
         });
       } catch (error) {
