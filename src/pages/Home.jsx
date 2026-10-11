@@ -50,31 +50,18 @@ export default function Home() {
           return url;
         };
 
-        let adminAvatar = "";
-        try {
-          const authRes = await fetch(`${apiBaseUrl}/api/auth/profile`);
-          const authData = await authRes.json();
-          if (authData.success && authData.data && authData.data.avatar) {
-            adminAvatar = authData.data.avatar;
-          }
-        } catch (e) {
-          // ignore fallback
-        }
-
         const res = await fetch(`${apiBaseUrl}/api/home-profile`);
         const data = await res.json();
         const homeData = data.success && data.data ? data.data : {};
         
-        // Priority: Admin avatar, or custom uploaded large image, or small image
-        const chosenHeroImage = 
-          adminAvatar ||
-          (homeData.largeImage && !homeData.largeImage.includes("bing.net") ? homeData.largeImage : "") ||
-          homeData.smallImage ||
-          "";
+        // Home hero card strictly uses home-profile largeImage
+        const heroImg = (homeData.largeImage && !homeData.largeImage.includes("bing.net"))
+          ? homeData.largeImage
+          : (homeData.smallImage || "");
 
         setProfileImages({
-          smallImage: resolveImageUrl(adminAvatar || homeData.smallImage, ""),
-          largeImage: resolveImageUrl(chosenHeroImage, "")
+          smallImage: resolveImageUrl(homeData.smallImage, ""),
+          largeImage: resolveImageUrl(heroImg, "")
         });
       } catch (error) {
         console.error("Failed to load home images", error);
