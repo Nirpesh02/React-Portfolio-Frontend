@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
-import { FaTachometerAlt, FaProjectDiagram, FaSignOutAlt, FaPlus, FaImage, FaEnvelope, FaBars, FaTimes, FaKey, FaSpinner, FaShieldAlt } from "react-icons/fa";
+import { FaTachometerAlt, FaProjectDiagram, FaSignOutAlt, FaPlus, FaImage, FaEnvelope, FaBars, FaTimes, FaKey, FaSpinner, FaShieldAlt, FaUserCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 export default function AdminLayout() {
@@ -12,9 +12,41 @@ export default function AdminLayout() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [isChangingPass, setIsChangingPass] = useState(false);
+  const [adminProfile, setAdminProfile] = useState({ name: "Nir P Esh", avatar: "" });
 
   const token = localStorage.getItem("adminToken");
   const apiBaseUrl = import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
+
+  const resolveImageUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("/uploads")) return `${apiBaseUrl}${url}`;
+    return url;
+  };
+
+  const fetchAdminProfile = useCallback(async () => {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/auth/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setAdminProfile({
+          name: data.data.name || "Nir P Esh",
+          avatar: data.data.avatar || "",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load admin profile", error);
+    }
+  }, [apiBaseUrl, token]);
+
+  useEffect(() => {
+    if (token) {
+      fetchAdminProfile();
+    }
+  }, [fetchAdminProfile, token]);
 
   if (!token) {
     return <Navigate to="/admin/login" replace />;
@@ -61,6 +93,7 @@ export default function AdminLayout() {
 
   const navItems = [
     { name: "Dashboard", path: "/admin", icon: <FaTachometerAlt /> },
+    { name: "Profile", path: "/admin/profile", icon: <FaUserCircle /> },
     { name: "Projects", path: "/admin/projects", icon: <FaProjectDiagram /> },
     { name: "Home Images", path: "/admin/home-images", icon: <FaImage /> },
     { name: "Inquiries", path: "/admin/inquiries", icon: <FaEnvelope /> },
@@ -81,13 +114,42 @@ export default function AdminLayout() {
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-white/10 bg-slate-900/95 backdrop-blur-xl flex flex-col transform transition-transform duration-300 lg:relative lg:translate-x-0 ${
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
-        <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-wider text-indigo-400">ADMIN PANEL</h2>
+        {/* Dynamic Admin Profile Header in Sidebar */}
+        <div className="p-5 border-b border-white/10 flex items-center justify-between">
+          <Link
+            to="/admin/profile"
+            onClick={() => setIsSidebarOpen(false)}
+            className="flex items-center gap-3 min-w-0 group cursor-pointer"
+          >
+            <div className="relative flex-shrink-0">
+              <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-indigo-500/50 bg-slate-950 flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.35)] transition-transform group-hover:scale-105 group-hover:border-indigo-400">
+                {adminProfile.avatar ? (
+                  <img
+                    src={resolveImageUrl(adminProfile.avatar)}
+                    alt="Admin Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FaUserCircle className="w-full h-full text-indigo-400" />
+                )}
+              </div>
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-900 animate-pulse" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold tracking-wide text-slate-100 text-sm truncate group-hover:text-indigo-300 transition-colors">
+                {adminProfile.name || "Nir P Esh"}
+              </span>
+              <span className="text-[10px] tracking-widest text-indigo-400 font-semibold uppercase">
+                Admin Panel
+              </span>
+            </div>
+          </Link>
+
           <button 
-            className="lg:hidden text-slate-400 hover:text-white"
+            className="lg:hidden text-slate-400 hover:text-white p-1"
             onClick={() => setIsSidebarOpen(false)}
           >
-            <FaTimes size={20} />
+            <FaTimes size={18} />
           </button>
         </div>
         
@@ -115,7 +177,7 @@ export default function AdminLayout() {
               setIsSidebarOpen(false);
               setIsChangePassOpen(true);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-all cursor-pointer"
           >
             <FaKey />
             <span className="font-medium">Change Password</span>
@@ -123,7 +185,7 @@ export default function AdminLayout() {
           
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
           >
             <FaSignOutAlt />
             <span className="font-medium">Logout</span>
@@ -140,19 +202,40 @@ export default function AdminLayout() {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[radial-gradient(ellipse_at_top_right,rgba(30,27,75,0.3),transparent_50%)]">
-        {/* Mobile Header */}
-        <div className="lg:hidden p-4 border-b border-white/10 flex items-center gap-4 bg-slate-900/50 backdrop-blur-xl shrink-0">
-          <button 
-            onClick={() => setIsSidebarOpen(true)}
-            className="text-slate-300 hover:text-white p-2"
-          >
-            <FaBars size={24} />
-          </button>
-          <h2 className="text-lg font-bold tracking-wider text-indigo-400">ADMIN PANEL</h2>
+        {/* Mobile Header with Dynamic Round Image */}
+        <div className="lg:hidden p-3.5 border-b border-white/10 flex items-center justify-between bg-slate-900/60 backdrop-blur-xl shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="text-slate-300 hover:text-white p-1.5 rounded-lg bg-white/5 border border-white/10"
+              aria-label="Open menu"
+            >
+              <FaBars size={18} />
+            </button>
+            <Link to="/admin/profile" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-indigo-500/50 bg-slate-950 flex items-center justify-center flex-shrink-0">
+                {adminProfile.avatar ? (
+                  <img
+                    src={resolveImageUrl(adminProfile.avatar)}
+                    alt="Admin"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FaUserCircle className="w-full h-full text-indigo-400" />
+                )}
+              </div>
+              <span className="font-bold text-sm text-slate-100 truncate max-w-[130px]">
+                {adminProfile.name || "Nir P Esh"}
+              </span>
+            </Link>
+          </div>
+          <span className="text-[10px] font-semibold tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+            ADMIN
+          </span>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-          <Outlet />
+          <Outlet context={{ adminProfile, refreshProfile: fetchAdminProfile }} />
         </div>
       </main>
 

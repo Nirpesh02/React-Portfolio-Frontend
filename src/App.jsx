@@ -13,6 +13,7 @@ import AdminHomeProfile from "./pages/admin/AdminHomeProfile.jsx";
 import AdminInquiries from "./pages/admin/AdminInquiries.jsx";
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import AdminResetAttempts from "./pages/admin/AdminResetAttempts.jsx";
+import AdminProfile from "./pages/admin/AdminProfile.jsx";
 import "./App.css";
 
 const MainLayout = () => (
@@ -39,6 +40,7 @@ export default function App() {
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
+        <Route path="profile" element={<AdminProfile />} />
         <Route path="projects" element={<AdminProjects />} />
         <Route path="home-images" element={<AdminHomeProfile />} />
         <Route path="inquiries" element={<AdminInquiries />} />
