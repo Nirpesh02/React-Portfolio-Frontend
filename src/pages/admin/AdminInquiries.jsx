@@ -183,65 +183,84 @@ export default function AdminInquiries() {
                     <FaClock /> Mark as Pending
                   </button>
                 )}
-                {inquiry.chatHistory && inquiry.chatHistory.length > 0 && (
+                {(inquiry.status === "Approved" || (inquiry.chatHistory && inquiry.chatHistory.length > 0)) && (
                   <button
                     onClick={() => setViewChatId(viewChatId === inquiry._id ? null : inquiry._id)}
-                    className="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm ml-auto"
+                    className="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm ml-auto cursor-pointer"
                   >
-                    <FaCommentDots /> {viewChatId === inquiry._id ? "Hide Chat Log" : "View Chat Log"}
+                    <FaCommentDots />{" "}
+                    {viewChatId === inquiry._id
+                      ? "Hide Chat Log"
+                      : `View Chat Log${inquiry.chatHistory && inquiry.chatHistory.length > 0 ? ` (${inquiry.chatHistory.length})` : ""}`}
                   </button>
                 )}
               </div>
 
               {/* Chat History View */}
-              {viewChatId === inquiry._id && inquiry.chatHistory && (
+              {viewChatId === inquiry._id && (
                 <div className="mt-6 pt-6 border-t border-white/10">
-                  <div className="flex items-center gap-2 mb-4">
-                    <FaCommentDots className="text-indigo-400" />
-                    <h4 className="text-sm font-semibold text-slate-200">Chatbot Interaction Log</h4>
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="flex items-center gap-2">
+                      <FaCommentDots className="text-indigo-400" />
+                      <h4 className="text-sm font-semibold text-slate-200">
+                        Chatbot Interaction Log ({inquiry.email})
+                      </h4>
+                    </div>
+                    {inquiry.chatHistory && inquiry.chatHistory.length > 0 && (
+                      <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-0.5 rounded-full border border-indigo-500/30">
+                        {inquiry.chatHistory.length} message{inquiry.chatHistory.length > 1 ? "s" : ""}
+                      </span>
+                    )}
                   </div>
-                  <div 
-                    ref={chatContainerRef}
-                    className="bg-slate-950/50 rounded-xl p-4 max-h-[300px] overflow-y-auto space-y-4 border border-white/5 scrollbar-thin scrollbar-thumb-white/10"
-                  >
-                    {inquiry.chatHistory.map((msg, idx) => {
-                      if (msg.sender === "system") {
+
+                  {(!inquiry.chatHistory || inquiry.chatHistory.length === 0) ? (
+                    <div className="bg-slate-950/40 border border-white/5 rounded-xl p-6 text-center text-slate-400 text-sm">
+                      No chat messages yet from this client. You can send the first message below.
+                    </div>
+                  ) : (
+                    <div 
+                      ref={chatContainerRef}
+                      className="bg-slate-950/50 rounded-xl p-4 max-h-[300px] overflow-y-auto space-y-4 border border-white/5 scrollbar-thin scrollbar-thumb-white/10"
+                    >
+                      {inquiry.chatHistory.map((msg, idx) => {
+                        if (msg.sender === "system") {
+                          return (
+                            <div key={idx} className="flex items-center justify-center my-4">
+                              <div className="bg-slate-800/50 px-4 py-1.5 rounded-full text-xs text-slate-400 border border-white/5 flex items-center gap-2">
+                                <FaClock className="text-[10px]" /> {new Date(msg.timestamp).toLocaleString()} - New Session Started
+                              </div>
+                            </div>
+                          );
+                        }
                         return (
-                          <div key={idx} className="flex items-center justify-center my-4">
-                            <div className="bg-slate-800/50 px-4 py-1.5 rounded-full text-xs text-slate-400 border border-white/5 flex items-center gap-2">
-                              <FaClock className="text-[10px]" /> {new Date(msg.timestamp).toLocaleString()} - New Session Started
+                          <div key={idx} className={`flex items-start gap-3 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
+                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
+                              msg.sender === "user" 
+                                ? "bg-slate-700 text-slate-300" 
+                                : msg.sender === "admin"
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                  : "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+                            }`}>
+                              {msg.sender === "user" ? <FaUser /> : msg.sender === "admin" ? "N" : <FaRobot />}
+                            </div>
+                            <div className={`p-3 rounded-2xl text-sm max-w-[80%] ${
+                              msg.sender === "user" 
+                                ? "bg-slate-800 text-slate-200 rounded-tr-none" 
+                                : msg.sender === "admin"
+                                  ? "bg-emerald-900/40 border border-emerald-500/20 text-slate-200 rounded-tl-none"
+                                  : "bg-indigo-900/40 border border-indigo-500/20 text-slate-200 rounded-tl-none"
+                            }`}>
+                              {msg.sender === "admin" && <div className="text-xs text-emerald-400 font-semibold mb-1">Nirpesh (Admin)</div>}
+                              {msg.text}
+                              <div className="text-[10px] text-slate-400 mt-1.5 opacity-60 text-right">
+                                {new Date(msg.timestamp).toLocaleString()}
+                              </div>
                             </div>
                           </div>
                         );
-                      }
-                      return (
-                        <div key={idx} className={`flex items-start gap-3 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
-                          <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
-                            msg.sender === "user" 
-                              ? "bg-slate-700 text-slate-300" 
-                              : msg.sender === "admin"
-                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                                : "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
-                          }`}>
-                            {msg.sender === "user" ? <FaUser /> : msg.sender === "admin" ? "N" : <FaRobot />}
-                          </div>
-                          <div className={`p-3 rounded-2xl text-sm max-w-[80%] ${
-                            msg.sender === "user" 
-                              ? "bg-slate-800 text-slate-200 rounded-tr-none" 
-                              : msg.sender === "admin"
-                                ? "bg-emerald-900/40 border border-emerald-500/20 text-slate-200 rounded-tl-none"
-                                : "bg-indigo-900/40 border border-indigo-500/20 text-slate-200 rounded-tl-none"
-                          }`}>
-                            {msg.sender === "admin" && <div className="text-xs text-emerald-400 font-semibold mb-1">Nirpesh (Admin)</div>}
-                            {msg.text}
-                            <div className="text-[10px] text-slate-400 mt-1.5 opacity-60 text-right">
-                              {new Date(msg.timestamp).toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                      })}
+                    </div>
+                  )}
 
                   {/* Admin Reply Input */}
                   <form onSubmit={(e) => handleAdminReply(e, inquiry._id, inquiry.email)} className="mt-4 flex gap-3 relative">
@@ -255,7 +274,7 @@ export default function AdminInquiries() {
                     <button
                       type="submit"
                       disabled={!adminReplies[inquiry._id]?.trim()}
-                      className="absolute right-1.5 top-1.5 bottom-1.5 aspect-square bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-full flex items-center justify-center transition-all"
+                      className="absolute right-1.5 top-1.5 bottom-1.5 aspect-square bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-full flex items-center justify-center transition-all cursor-pointer"
                     >
                       <FaPaperPlane className="ml-1 text-sm" />
                     </button>
