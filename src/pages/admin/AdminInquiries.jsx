@@ -7,6 +7,7 @@ export default function AdminInquiries() {
   const [loading, setLoading] = useState(true);
   const [viewChatId, setViewChatId] = useState(null);
   const [adminReplies, setAdminReplies] = useState({});
+  const [adminAvatar, setAdminAvatar] = useState("");
   const chatContainerRef = useRef(null);
 
   const apiBaseUrl =
@@ -28,6 +29,20 @@ export default function AdminInquiries() {
 
   useEffect(() => {
     fetchInquiries();
+
+    const fetchAdminAvatar = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/auth/profile`);
+        const data = await res.json();
+        if (data.success && data.data && data.data.avatar) {
+          const url = data.data.avatar;
+          setAdminAvatar(url.startsWith('/uploads') ? `${apiBaseUrl}${url}` : url);
+        }
+      } catch (e) {
+        console.error("Failed to load admin avatar", e);
+      }
+    };
+    fetchAdminAvatar();
   }, [apiBaseUrl]);
 
   const handleStatusChange = async (id, newStatus) => {
@@ -234,14 +249,24 @@ export default function AdminInquiries() {
                         }
                         return (
                           <div key={idx} className={`flex items-start gap-3 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
-                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
+                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs overflow-hidden ${
                               msg.sender === "user" 
                                 ? "bg-slate-700 text-slate-300" 
                                 : msg.sender === "admin"
                                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                                   : "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
                             }`}>
-                              {msg.sender === "user" ? <FaUser /> : msg.sender === "admin" ? "N" : <FaRobot />}
+                              {msg.sender === "user" ? (
+                                <FaUser />
+                              ) : msg.sender === "admin" ? (
+                                adminAvatar ? (
+                                  <img src={adminAvatar} alt="Admin" className="w-full h-full object-cover" />
+                                ) : (
+                                  "N"
+                                )
+                              ) : (
+                                <FaRobot />
+                              )}
                             </div>
                             <div className={`p-3 rounded-2xl text-sm max-w-[80%] ${
                               msg.sender === "user" 
