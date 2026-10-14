@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
   FaHome,
+  FaBookOpen,
   FaProjectDiagram,
   FaUser,
   FaEnvelope,
@@ -23,7 +24,18 @@ export default function Navbar() {
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [profileBioData, setProfileBioData] = useState(null);
   const location = useLocation();
-  const active = location.pathname === "/" ? "home" : location.pathname.substring(1);
+  const isItemActive = (itemName) => {
+    if (itemName === "home") return location.pathname === "/";
+    if (itemName === "blog") {
+      return (
+        location.pathname === "/blog" ||
+        location.pathname.startsWith("/blog/") ||
+        location.pathname === "/blogs" ||
+        location.pathname.startsWith("/blogs/")
+      );
+    }
+    return location.pathname === `/${itemName}` || location.pathname.startsWith(`/${itemName}/`);
+  };
 
   const apiBaseUrl =
     import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
@@ -91,6 +103,7 @@ export default function Navbar() {
 
   const menuItems = [
     { name: "home", icon: <FaHome /> },
+    { name: "blog", icon: <FaBookOpen /> },
     { name: "projects", icon: <FaProjectDiagram /> },
     { name: "about", icon: <FaUser /> },
     { name: "contact", icon: <FaEnvelope /> },
@@ -220,7 +233,7 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center flex-shrink-0">
             <ul className="flex items-center gap-1 lg:gap-1.5 p-1 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-lg shadow-black/25">
               {menuItems.map((item) => {
-                const isActive = active === item.name;
+                const isActive = isItemActive(item.name);
                 return (
                   <li key={item.name} className="relative flex-shrink-0">
                     <Link
@@ -265,7 +278,7 @@ export default function Navbar() {
               <div className="rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-2.5 overflow-hidden">
                 <ul className="flex flex-col space-y-1">
                   {menuItems.map((item) => {
-                    const isActive = active === item.name;
+                    const isActive = isItemActive(item.name);
                     return (
                       <li key={item.name}>
                         <Link

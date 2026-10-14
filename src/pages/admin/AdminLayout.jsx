@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
-import { FaTachometerAlt, FaProjectDiagram, FaSignOutAlt, FaPlus, FaImage, FaEnvelope, FaBars, FaTimes, FaKey, FaSpinner, FaShieldAlt, FaUserCircle } from "react-icons/fa";
+import { FaTachometerAlt, FaProjectDiagram, FaBookOpen, FaSignOutAlt, FaPlus, FaImage, FaEnvelope, FaBars, FaTimes, FaKey, FaSpinner, FaShieldAlt, FaUserCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 export default function AdminLayout() {
@@ -94,6 +94,7 @@ export default function AdminLayout() {
   const navItems = [
     { name: "Dashboard", path: "/admin", icon: <FaTachometerAlt /> },
     { name: "Profile", path: "/admin/profile", icon: <FaUserCircle /> },
+    { name: "Blogs", path: "/admin/blogs", icon: <FaBookOpen /> },
     { name: "Projects", path: "/admin/projects", icon: <FaProjectDiagram /> },
     { name: "Home Images", path: "/admin/home-images", icon: <FaImage /> },
     { name: "Inquiries", path: "/admin/inquiries", icon: <FaEnvelope /> },
