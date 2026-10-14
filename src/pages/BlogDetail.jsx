@@ -282,6 +282,7 @@ export default function BlogDetail() {
   const [comments, setComments] = useState([]);
   const [commentForm, setCommentForm] = useState({ name: "", email: "", text: "" });
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
 
   const apiBaseUrl =
     import.meta.env.VITE_API_URL?.trim() || "https://react-portfolio-backend-jwfc.onrender.com";
@@ -486,6 +487,38 @@ export default function BlogDetail() {
     }
   };
 
+  // Delete own comment (clients can only delete comments matching their Google email)
+  const handleDeleteComment = async (commentId) => {
+    if (!user?.email) {
+      toast.warn("Please sign in with Google first.");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete your comment?")) {
+      return;
+    }
+
+    setDeletingCommentId(commentId);
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/blogs/${blog._id}/comments/${commentId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Your comment has been deleted.");
+        setComments(data.comments || comments.filter((c) => c._id !== commentId));
+      } else {
+        toast.error(data.message || "Failed to delete comment");
+      }
+    } catch {
+      toast.error("Could not delete comment. Please try again.");
+    } finally {
+      setDeletingCommentId(null);
+    }
+  };
+
   const handleShare = (platform) => {
     const currentUrl = window.location.href;
     const title = blog?.title || "Check out this article";
@@ -645,6 +678,13 @@ export default function BlogDetail() {
                 <img
                   src={user.avatar}
                   alt={user.name}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.name || "User"
+                    )}&background=4285F4&color=fff&bold=true`;
+                  }}
                   className="h-6 w-6 rounded-full object-cover ring-1 ring-emerald-400"
                 />
                 <div className="text-left">
@@ -936,32 +976,74 @@ export default function BlogDetail() {
             </div>
           ) : (
             <div className="space-y-4">
-              {comments.map((c, i) => (
-                <div
-                  key={c._id || i}
-                  className="flex items-start gap-3.5 rounded-2xl border border-white/5 bg-slate-950/50 p-4 sm:p-5"
-                >
-                  <img
-                    src={
-                      c.avatar ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=6366f1&color=fff&bold=true`
-                    }
-                    alt={c.name}
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-indigo-500/20 flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-white truncate">{c.name}</h4>
-                      <span className="text-[11px] text-slate-500">
-                        {c.createdAt ? formatDate(c.createdAt) : "Recently"}
-                      </span>
+              {comments.map((c, i) => {
+                const isMyComment =
+                  user?.email &&
+                  c.email &&
+                  user.email.trim().toLowerCase() === c.email.trim().toLowerCase();
+
+                return (
+                  <div
+                    key={c._id || i}
+                    className="flex items-start gap-3.5 rounded-2xl border border-white/5 bg-slate-950/50 p-4 sm:p-5"
+                  >
+                    <img
+                      src={
+                        c.avatar ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=6366f1&color=fff&bold=true`
+                      }
+                      alt={c.name}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          c.name || "User"
+                        )}&background=6366f1&color=fff&bold=true`;
+                      }}
+                      className="h-10 w-10 rounded-full object-cover ring-2 ring-indigo-500/20 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-white truncate">{c.name}</h4>
+                          {isMyComment && (
+                            <span className="rounded-full bg-indigo-500/20 px-2 py-0.2 text-[9px] font-semibold text-indigo-300 border border-indigo-500/30">
+                              You
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-slate-500">
+                            {c.createdAt ? formatDate(c.createdAt) : "Recently"}
+                          </span>
+
+                          {/* Client Delete Button: ONLY shown if this comment belongs to the logged-in client! */}
+                          {isMyComment && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteComment(c._id)}
+                              disabled={deletingCommentId === c._id}
+                              title="Delete your comment"
+                              className="inline-flex items-center gap-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/25 px-2 py-0.5 text-[10px] font-semibold transition cursor-pointer"
+                            >
+                              {deletingCommentId === c._id ? (
+                                <FaSpinner className="animate-spin text-[10px]" />
+                              ) : (
+                                <FaTrash className="text-[10px]" />
+                              )}
+                              <span>Delete</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <p className="mt-1.5 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {c.text}
+                      </p>
                     </div>
-                    <p className="mt-1.5 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
-                      {c.text}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

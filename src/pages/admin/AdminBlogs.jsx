@@ -1175,6 +1175,13 @@ export default function AdminBlogs() {
                           `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.name)}&background=6366f1&color=fff&bold=true`
                         }
                         alt={comment.name}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            comment.name || "User"
+                          )}&background=6366f1&color=fff&bold=true`;
+                        }}
                         className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10 flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
@@ -1337,6 +1344,13 @@ export default function AdminBlogs() {
                                 )}&background=4285F4&color=fff&bold=true`
                               }
                               alt={viewer.name}
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  viewer.name || "Google User"
+                                )}&background=4285F4&color=fff&bold=true`;
+                              }}
                               className="h-12 w-12 rounded-full object-cover ring-2 ring-indigo-500/50"
                             />
                             <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow">
@@ -1586,6 +1600,13 @@ export default function AdminBlogs() {
                                 )}&background=E11D48&color=fff&bold=true`
                               }
                               alt={reactor.name}
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  reactor.name || "Google User"
+                                )}&background=E11D48&color=fff&bold=true`;
+                              }}
                               className="h-12 w-12 rounded-full object-cover ring-2 ring-rose-500/50"
                             />
                             <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow">

@@ -232,6 +232,13 @@ export default function Blog() {
                 <img
                   src={user.avatar}
                   alt={user.name}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.name || "User"
+                    )}&background=4285F4&color=fff&bold=true`;
+                  }}
                   className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover ring-2 ring-emerald-400/60 flex-shrink-0"
                 />
                 <div className="text-left">
