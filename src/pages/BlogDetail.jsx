@@ -310,15 +310,14 @@ export default function BlogDetail() {
           setReactions(data.data.reactions || { like: 0, love: 0, haha: 0, wow: 0, sad: 0 });
           setComments(data.data.comments || []);
 
-          // Clear any client-side cached reactions so it strictly reflects 0 from DB
-          try {
-            Object.keys(localStorage).forEach((k) => {
-              if (k.startsWith("reaction_") || k.startsWith("viewed_blog_")) {
-                localStorage.removeItem(k);
-              }
-            });
-          } catch (e) {}
-          setMyReaction(null);
+          if (user?.email && Array.isArray(data.data.reactionsList)) {
+            const found = data.data.reactionsList.find(
+              (r) => r.email && r.email.toLowerCase() === user.email.toLowerCase()
+            );
+            setMyReaction(found ? found.reactionType : null);
+          } else {
+            setMyReaction(null);
+          }
         } else {
           setError(data.message || "Blog post not found");
         }
@@ -333,7 +332,17 @@ export default function BlogDetail() {
       fetchBlog();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [slugOrId, apiBaseUrl]);
+  }, [slugOrId, apiBaseUrl, user?.email]);
+
+  // Sync myReaction when user auth or blog reactionsList changes
+  useEffect(() => {
+    if (blog?.reactionsList && user?.email) {
+      const found = blog.reactionsList.find(
+        (r) => r.email && r.email.toLowerCase() === user.email.toLowerCase()
+      );
+      setMyReaction(found ? found.reactionType : null);
+    }
+  }, [blog?.reactionsList, user?.email]);
 
   // Unique Gmail-based Viewer Tracking:
   // If the same Gmail visits multiple times, the view count DOES NOT increase.
@@ -394,48 +403,57 @@ export default function BlogDetail() {
   // Handle Facebook reaction select or toggle
   const handleReactionClick = async (reactionType) => {
     if (!blog?._id) return;
-    setShowReactionPicker(false);
-
-    const isToggleOff = myReaction === reactionType;
-    const previousReaction = myReaction;
-    const newReaction = isToggleOff ? null : reactionType;
-
-    // Optimistic UI update
-    setMyReaction(newReaction);
-    setReactions((prev) => {
-      const updated = { ...prev };
-      if (previousReaction && updated[previousReaction] !== undefined) {
-        updated[previousReaction] = Math.max(0, updated[previousReaction] - 1);
-      }
-      if (newReaction && updated[newReaction] !== undefined) {
-        updated[newReaction] = (updated[newReaction] || 0) + 1;
-      }
-      return updated;
-    });
-
-    if (newReaction) {
-      toast.success(`You reacted with ${REACTIONS.find((r) => r.type === newReaction)?.emoji || "👍"}!`);
+    if (!user || !user.email) {
+      toast.warn("Please sign in with Google to react to this article.");
+      setShowAuthModal(true);
+      return;
     }
+
+    setShowReactionPicker(false);
 
     try {
       const res = await fetch(`${apiBaseUrl}/api/blogs/${blog._id}/react`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reactionType: newReaction,
-          previousReaction,
+          reactionType,
+          email: user.email,
+          name: user.name || "Google User",
+          avatar: user.avatar || "",
         }),
       });
       const data = await res.json();
-      if (data.success && data.reactions) {
-        setReactions(data.reactions);
+      if (data.success) {
+        if (data.reactions) {
+          setReactions(data.reactions);
+        }
+        setMyReaction(data.userReaction || null);
+        setBlog((prev) =>
+          prev
+            ? {
+                ...prev,
+                reactions: data.reactions,
+                reactionsList: data.reactionsList,
+              }
+            : prev
+        );
+
+        if (data.userReaction) {
+          const emoji = REACTIONS.find((r) => r.type === data.userReaction)?.emoji || "👍";
+          toast.success(`You reacted with ${emoji}!`);
+        } else {
+          toast.info("Reaction removed");
+        }
+      } else {
+        toast.error(data.message || "Failed to update reaction");
       }
     } catch (e) {
       console.error("Failed to update reaction", e);
+      toast.error("Could not update reaction. Please check your connection.");
     }
   };
 
-  // Submit comment
+  // Submit comment (attaches Google account avatar if logged in)
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!commentForm.name.trim() || !commentForm.text.trim()) {
@@ -448,13 +466,16 @@ export default function BlogDetail() {
       const res = await fetch(`${apiBaseUrl}/api/blogs/${blog._id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(commentForm),
+        body: JSON.stringify({
+          ...commentForm,
+          avatar: user?.avatar || "",
+        }),
       });
       const data = await res.json();
       if (data.success) {
         toast.success("Comment posted successfully!");
         setComments(data.comments || [data.comment, ...comments]);
-        setCommentForm({ name: commentForm.name, email: commentForm.email, text: "" });
+        setCommentForm({ name: user?.name || commentForm.name, email: user?.email || commentForm.email, text: "" });
       } else {
         toast.error(data.message || "Failed to post comment");
       }
@@ -803,80 +824,47 @@ export default function BlogDetail() {
               )}
             </div>
 
-            {/* Reaction Trigger Button with Facebook Popup */}
-            <div
-              className="relative inline-block"
-              onMouseEnter={() => {
-                clearTimeout(reactionPickerTimeoutRef.current);
-                setShowReactionPicker(true);
-              }}
-              onMouseLeave={() => {
-                reactionPickerTimeoutRef.current = setTimeout(() => {
-                  setShowReactionPicker(false);
-                }, 300);
-              }}
-            >
-              {/* Facebook Reaction Floating Picker Popup */}
-              <AnimatePresence>
-                {showReactionPicker && (
-                  <Motion.div
-                    initial={{ opacity: 0, scale: 0.7, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.7, y: 10 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full border border-white/20 bg-slate-900/95 px-3 py-2 shadow-2xl backdrop-blur-2xl ring-1 ring-white/10"
-                  >
-                    {REACTIONS.map((item) => (
-                      <Motion.button
-                        key={item.type}
-                        type="button"
-                        whileHover={{ scale: 1.45, y: -6 }}
-                        whileTap={{ scale: 1.1 }}
-                        onClick={() => handleReactionClick(item.type)}
-                        title={item.label}
-                        className="group relative flex flex-col items-center justify-center p-1.5 transition cursor-pointer"
-                      >
-                        <span className="text-2xl sm:text-3xl filter drop-shadow-md transition-transform">
-                          {item.emoji}
-                        </span>
-                        {/* Tooltip */}
-                        <span className="absolute -top-7 rounded-md bg-slate-950 px-2 py-0.5 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100 pointer-events-none shadow-md">
-                          {item.label}
-                        </span>
-                      </Motion.button>
-                    ))}
-                  </Motion.div>
-                )}
-              </AnimatePresence>
+            {/* Reaction Controls: Direct 1-Tap 5-Emoji Bar for Mobile & Desktop */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-white/5 border border-white/10 shadow-inner">
+                {REACTIONS.map((item) => {
+                  const isSelected = myReaction === item.type;
+                  return (
+                    <button
+                      key={item.type}
+                      type="button"
+                      onClick={() => handleReactionClick(item.type)}
+                      title={`${item.label} (${isSelected ? "Click to remove" : "Click to react"})`}
+                      className={`relative flex items-center justify-center h-10 w-10 sm:h-9 sm:w-9 rounded-full transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-indigo-600/40 scale-110 ring-2 ring-indigo-400 shadow-lg shadow-indigo-500/25"
+                          : "hover:bg-white/10 hover:scale-115 active:scale-90 opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      <span className="text-xl sm:text-2xl filter drop-shadow select-none">
+                        {item.emoji}
+                      </span>
+                      {isSelected && (
+                        <span className="absolute -bottom-0.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-sm" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
 
-              {/* Main Reaction Action Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (myReaction) {
-                    handleReactionClick(myReaction); // Toggle off
-                  } else {
-                    handleReactionClick("like"); // Default like
-                  }
-                }}
-                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition cursor-pointer shadow-md ${
-                  activeReactionObj
-                    ? "bg-indigo-600/30 text-white border border-indigo-500/50"
-                    : "bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {activeReactionObj ? (
-                  <>
-                    <span className="text-lg">{activeReactionObj.emoji}</span>
-                    <span className={activeReactionObj.color}>{activeReactionObj.label}</span>
-                  </>
-                ) : (
-                  <>
-                    <FaThumbsUp className="text-sm text-indigo-400" />
-                    <span>React</span>
-                  </>
-                )}
-              </button>
+              {/* Status Badge showing user's current reaction */}
+              {activeReactionObj && (
+                <button
+                  type="button"
+                  onClick={() => handleReactionClick(activeReactionObj.type)}
+                  title="Click to remove your reaction"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/20 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:text-rose-300 border border-indigo-500/30 hover:border-rose-500/30 transition cursor-pointer"
+                >
+                  <span className="text-sm">{activeReactionObj.emoji}</span>
+                  <span>{activeReactionObj.label}</span>
+                  <span className="text-[10px] text-slate-400 font-normal">✕</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
