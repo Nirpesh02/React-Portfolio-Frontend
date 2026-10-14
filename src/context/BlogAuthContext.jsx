@@ -44,7 +44,7 @@ export const BlogAuthProvider = ({ children }) => {
 
   // Google Sign-In with Firebase
   const loginWithGoogle = async () => {
-    if (isFirebaseConfigured && auth && googleProvider) {
+    if (auth && googleProvider) {
       try {
         const result = await signInWithPopup(auth, googleProvider);
         const firebaseUser = result.user;
@@ -65,13 +65,17 @@ export const BlogAuthProvider = ({ children }) => {
         console.error("Google sign in error:", error);
         if (error.code === "auth/popup-closed-by-user") {
           toast.info("Google Sign-In was cancelled");
+        } else if (error.code === "auth/operation-not-allowed") {
+          toast.error("Google Sign-In Firebase Console मा Enable गरिएको छैन! कृपया Firebase Console मा गएर Google Enable गर्नुहोस्।");
+        } else if (error.code === "auth/unauthorized-domain") {
+          toast.error("यो डोमेन Firebase Authorized Domains मा छैन। कृपया localhost लाई Authorized Domains मा थप्नुहोस्।");
         } else {
           toast.error(error.message || "Failed to sign in with Google");
         }
         return null;
       }
     } else {
-      toast.warning("Firebase API keys chainxa! Please paste your Firebase keys into frontend/.env");
+      toast.warning("Firebase सुरु भइरहेको छ... कृपया पेज रिफ्रेस (F5) गर्नुहोस्।");
       return null;
     }
   };
